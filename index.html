@@ -2,52 +2,53 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
-  <title>Прослухай опис рослини</title>
+  <title>Опис рослини</title>
   <style>
     body {
-      text-align: center;
-      margin-top: 60px;
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f5fff5;
-      color: #2f4f2f;
+      background-color: #f2fff2;
+      text-align: center;
+      padding-top: 60px;
+      color: #2e4e2e;
     }
+
     h2 {
       font-size: 2em;
-      margin-bottom: 10px;
     }
-    p {
-      font-size: 1.2em;
-      margin-bottom: 40px;
+
+    .play-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 20px 40px;
+      font-size: 1.5em;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+      transition: 0.3s ease;
     }
-    audio {
-      width: 80%;
-      max-width: 400px;
-      height: 80px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+
+    .play-btn:hover {
+      background-color: #3e8e41;
     }
-    .wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+
     .instruction {
+      margin-top: 20px;
       font-size: 1.1em;
-      margin-top: 15px;
       font-style: italic;
-      color: #555;
     }
   </style>
 </head>
 <body>
-  <div class="wrapper">
-    <h2>🌿 Вітаємо в парку!</h2>
-    <p>Прослухайте опис цієї рослини:</p>
-    <audio id="audio" controls>
-      <source src="audio.mp3" type="audio/mpeg">
-      Ваш браузер не підтримує відтворення аудіо.
-    </audio>
-    <div class="instruction">👆 Натисніть кнопку ▶️ для початку прослуховування</div>
-  </div>
+
+  <h2>🌼 Прослухайте опис рослини</h2>
+  <button class="play-btn" onclick="document.getElementById('audio').play()">▶️ Відтворити</button>
+  <div class="instruction">Натисніть кнопку, щоб почати аудіо</div>
+
+  <audio id="audio">
+    <source src="audio.mp3" type="audio/mpeg">
+    Ваш браузер не підтримує аудіо.
+  </audio>
+
 </body>
 </html>
