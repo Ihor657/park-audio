@@ -2,14 +2,52 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
-  <title>Прослухай опис рослини</title>
+  <title>РџСЂРѕСЃР»СѓС…Р°Р№ РѕРїРёСЃ СЂРѕСЃР»РёРЅРё</title>
+  <style>
+    body {
+      text-align: center;
+      margin-top: 60px;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5fff5;
+      color: #2f4f2f;
+    }
+    h2 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 1.2em;
+      margin-bottom: 40px;
+    }
+    audio {
+      width: 80%;
+      max-width: 400px;
+      height: 80px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    .wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .instruction {
+      font-size: 1.1em;
+      margin-top: 15px;
+      font-style: italic;
+      color: #555;
+    }
+  </style>
 </head>
-<body onload="document.getElementById('audio').play()" style="text-align:center; margin-top:50px; font-family:sans-serif">
-  <h2>?? Вітаємо в парку!</h2>
-  <p>Зараз ви почуєте опис рослини...</p>
-  <audio id="audio" autoplay controls>
-    <source src="audio.mp3" type="audio/mpeg">
-    Ваш браузер не підтримує відтворення аудіо.
-  </audio>
+<body>
+  <div class="wrapper">
+    <h2>рџЊї Р’С–С‚Р°С”РјРѕ РІ РїР°СЂРєСѓ!</h2>
+    <p>РџСЂРѕСЃР»СѓС…Р°Р№С‚Рµ РѕРїРёСЃ С†С–С”С— СЂРѕСЃР»РёРЅРё:</p>
+    <audio id="audio" controls>
+      <source src="audio.mp3" type="audio/mpeg">
+      Р’Р°С€ Р±СЂР°СѓР·РµСЂ РЅРµ РїС–РґС‚СЂРёРјСѓС” РІС–РґС‚РІРѕСЂРµРЅРЅСЏ Р°СѓРґС–Рѕ.
+    </audio>
+    <div class="instruction">рџ‘† РќР°С‚РёСЃРЅС–С‚СЊ РєРЅРѕРїРєСѓ в–¶пёЏ РґР»СЏ РїРѕС‡Р°С‚РєСѓ РїСЂРѕСЃР»СѓС…РѕРІСѓРІР°РЅРЅСЏ</div>
+  </div>
 </body>
 </html>
