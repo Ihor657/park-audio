@@ -15,7 +15,6 @@
       margin: 0;
     }
 
-    /* Прихована кнопка для автоматичного розблокування аудіо */
     #hiddenUnlockBtn {
       position: absolute;
       top: -9999px;
@@ -98,8 +97,25 @@
       background-color: #c0392b;
     }
 
+    /* Відображення часу */
+    .time-display {
+      margin-top: 15px;
+      font-size: 1.1em;
+      font-weight: 600;
+      color: #2e4e2e;
+      background-color: #e0f2e0;
+      padding: 8px 20px;
+      border-radius: 20px;
+      display: inline-block;
+      min-width: 150px;
+    }
+
+    .time-display span {
+      color: #4CAF50;
+    }
+
     .instruction {
-      margin-top: 25px;
+      margin-top: 20px;
       font-size: 1.1em;
       font-style: italic;
       color: #555;
@@ -136,13 +152,19 @@
         gap: 8px;
       }
 
+      .time-display {
+        font-size: 0.95em;
+        padding: 6px 15px;
+        min-width: 130px;
+        margin-top: 12px;
+      }
+
       .instruction {
         margin-top: 20px;
         font-size: 0.95em;
       }
     }
 
-    /* ДУЖЕ МАЛЕНЬКІ ЕКРАНИ (старі телефони) */
     @media (max-width: 480px) {
       body {
         padding: 30px 10px;
@@ -170,6 +192,13 @@
         gap: 6px;
       }
 
+      .time-display {
+        font-size: 0.85em;
+        padding: 5px 12px;
+        min-width: 120px;
+        margin-top: 10px;
+      }
+
       .instruction {
         font-size: 0.85em;
         margin-top: 15px;
@@ -182,7 +211,7 @@
 
   <button id="hiddenUnlockBtn"></button>
 
-  <h2 class="main-title">🌿 Прослухайте опис рослини</h2>
+  <h2 class="main-title"> Прослухайте опис рослини</h2>
 
   <div class="controls-container">
     <button class="control-btn" id="startBtn" title="Повернутися на початок">⏮️</button>
@@ -192,7 +221,12 @@
       <span id="btnText">Відтворити</span>
     </button>
     
-    <button class="control-btn" id="endBtn" title="Перейти в кінець">⏭️</button>
+    <button class="control-btn" id="endBtn" title="Перейти в кінець">️</button>
+  </div>
+
+  <!-- Відображення часу -->
+  <div class="time-display" id="timeDisplay">
+    <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
   </div>
 
   <div class="instruction" id="instructionText">
@@ -213,6 +247,9 @@
     const startBtn = document.getElementById('startBtn');
     const playBtn = document.getElementById('playBtn');
     const endBtn = document.getElementById('endBtn');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const currentTimeEl = document.getElementById('currentTime');
+    const durationEl = document.getElementById('duration');
     
     const btnIcon = document.getElementById('btnIcon');
     const btnText = document.getElementById('btnText');
@@ -225,6 +262,31 @@
     let audioUnlocked = false;
 
     forest.volume = 0.35;
+
+    // Функція форматування часу (секунди -> ММ:СС)
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return "0:00";
+      
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Оновлення часу відтворення
+    audio.addEventListener('timeupdate', () => {
+      currentTimeEl.textContent = formatTime(audio.currentTime);
+    });
+
+    // Отримання загальної тривалості аудіо
+    audio.addEventListener('loadedmetadata', () => {
+      durationEl.textContent = formatTime(audio.duration);
+    });
+
+    // Скидання часу коли аудіо закінчується
+    audio.addEventListener('ended', () => {
+      currentTimeEl.textContent = formatTime(audio.duration);
+    });
 
     window.addEventListener('DOMContentLoaded', () => {
       hiddenUnlockBtn.click();
@@ -263,7 +325,7 @@
         forest.pause();
         audio.play().then(() => {
           isPlaying = true;
-          btnIcon.textContent = '⏸️';
+          btnIcon.textContent = '️';
           btnText.textContent = 'Пауза';
           playBtn.classList.add('playing');
           instructionText.textContent = '🔊 Йде відтворення опису рослини...';
@@ -277,7 +339,7 @@
         btnIcon.textContent = '▶️';
         btnText.textContent = 'Продовжити';
         playBtn.classList.remove('playing');
-        instructionText.textContent = '⏸️ Аудіо на паузі. Грає фоновий звук лісу.';
+        instructionText.textContent = '️ Аудіо на паузі. Грає фоновий звук лісу.';
         forest.play();
       }
     });
