@@ -13,14 +13,7 @@
       padding: 60px 20px;
       color: #2e4e2e;
       margin: 0;
-    }
-
-    #hiddenUnlockBtn {
-      position: absolute;
-      top: -9999px;
-      left: -9999px;
-      opacity: 0;
-      pointer-events: none;
+      user-select: none;
     }
 
     h2.main-title {
@@ -124,92 +117,28 @@
     }
 
     @media (max-width: 768px) {
-      body {
-        padding: 40px 15px;
-      }
-
-      h2.main-title {
-        font-size: 1.5em;
-        margin-bottom: 10px;
-      }
-
-      .controls-container {
-        gap: 10px;
-        margin-top: 15px;
-      }
-
-      .control-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 1em;
-        padding: 12px;
-      }
-
-      .play-btn {
-        padding: 15px 20px;
-        font-size: 1.1em;
-        min-width: 160px;
-        gap: 8px;
-      }
-
-      .time-display {
-        font-size: 1.1em;
-        padding: 10px 20px;
-        min-width: 150px;
-        margin-top: 15px;
-      }
-
-      .instruction {
-        margin-top: 20px;
-        font-size: 0.95em;
-      }
+      body { padding: 40px 15px; }
+      h2.main-title { font-size: 1.5em; margin-bottom: 10px; }
+      .controls-container { gap: 10px; margin-top: 15px; }
+      .control-btn { width: 50px; height: 50px; font-size: 1em; padding: 12px; }
+      .play-btn { padding: 15px 20px; font-size: 1.1em; min-width: 160px; gap: 8px; }
+      .time-display { font-size: 1.1em; padding: 10px 20px; min-width: 150px; margin-top: 15px; }
+      .instruction { margin-top: 20px; font-size: 0.95em; }
     }
 
     @media (max-width: 480px) {
-      body {
-        padding: 30px 10px;
-      }
-
-      h2.main-title {
-        font-size: 1.3em;
-      }
-
-      .controls-container {
-        gap: 8px;
-      }
-
-      .control-btn {
-        width: 45px;
-        height: 45px;
-        font-size: 0.9em;
-        padding: 10px;
-      }
-
-      .play-btn {
-        padding: 12px 15px;
-        font-size: 1em;
-        min-width: 140px;
-        gap: 6px;
-      }
-
-      .time-display {
-        font-size: 1em;
-        padding: 8px 15px;
-        min-width: 140px;
-        margin-top: 12px;
-      }
-
-      .instruction {
-        font-size: 0.85em;
-        margin-top: 15px;
-      }
+      body { padding: 30px 10px; }
+      h2.main-title { font-size: 1.3em; }
+      .controls-container { gap: 8px; }
+      .control-btn { width: 45px; height: 45px; font-size: 0.9em; padding: 10px; }
+      .play-btn { padding: 12px 15px; font-size: 1em; min-width: 140px; gap: 6px; }
+      .time-display { font-size: 1em; padding: 8px 15px; min-width: 140px; margin-top: 12px; }
+      .instruction { font-size: 0.85em; margin-top: 15px; }
     }
   </style>
 </head>
 
 <body>
-
-  <button id="hiddenUnlockBtn"></button>
 
   <h2 class="main-title">🌿 Прослухайте опис рослини</h2>
 
@@ -229,24 +158,22 @@
   </div>
 
   <div class="instruction" id="instructionText">
-    Завантаження звуку лісу...
+    🌲 Торкніться екрана або натисніть кнопку для запуску
   </div>
 
-  <audio id="audio" preload="auto">
+  <audio id="audio" preload="metadata">
     <source src="Audio1.mp3" type="audio/mpeg">
   </audio>
 
-  <audio id="forest" loop preload="auto">
+  <audio id="forest" loop preload="metadata">
     <source src="Trees.aac" type="audio/aac">
     <source src="Trees.aac" type="audio/mp4">
   </audio>
 
   <script>
-    const hiddenUnlockBtn = document.getElementById('hiddenUnlockBtn');
     const startBtn = document.getElementById('startBtn');
     const playBtn = document.getElementById('playBtn');
     const endBtn = document.getElementById('endBtn');
-    const timeDisplay = document.getElementById('timeDisplay');
     const currentTimeEl = document.getElementById('currentTime');
     const durationEl = document.getElementById('duration');
     
@@ -264,10 +191,8 @@
 
     function formatTime(seconds) {
       if (isNaN(seconds) || seconds < 0) return "0:00";
-      
       const mins = Math.floor(seconds / 60);
       const secs = Math.floor(seconds % 60);
-      
       return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
 
@@ -279,49 +204,26 @@
       durationEl.textContent = formatTime(audio.duration);
     });
 
-    audio.addEventListener('canplay', () => {
-      if (durationEl.textContent === '0:00') {
-        durationEl.textContent = formatTime(audio.duration);
-      }
-    });
-
-    audio.addEventListener('ended', () => {
-      currentTimeEl.textContent = formatTime(audio.duration);
-    });
-
-    window.addEventListener('DOMContentLoaded', () => {
-      hiddenUnlockBtn.click();
+    // Активація фонового аудіо при першому жестів користувача
+    function unlockAudio() {
+      if (audioUnlocked) return;
       
       forest.play().then(() => {
         audioUnlocked = true;
-        instructionText.textContent = '🌲 Звук лісу грає. Натисніть кнопку або торкніться екрану для опису.';
-        console.log('✅ Звук лісу автоматично запущено');
+        if (!isPlaying) {
+          instructionText.textContent = '🌲 Фоновий звук грає. Натисніть "Відтворити" для опису.';
+        }
       }).catch(err => {
-        console.log('⚠️ Автоматичний запуск заблоковано, чекаємо на взаємодію...');
-        instructionText.textContent = '🌲 Рухайте мишею або торкніться екрану для активації звуку';
-        
-        const unlockOnInteraction = () => {
-          if (!audioUnlocked) {
-            forest.play().then(() => {
-              audioUnlocked = true;
-              instructionText.textContent = '🌲 Звук лісу грає. Натисніть кнопку або торкніться екрану для опису.';
-              console.log('✅ Звук розблоковано при взаємодії');
-            });
-          }
-        };
-        
-        document.addEventListener('mousemove', unlockOnInteraction, { once: true });
-        document.addEventListener('touchstart', unlockOnInteraction, { once: true });
-        document.addEventListener('click', unlockOnInteraction, { once: true });
+        console.log('Помилка активації фонового звуку:', err);
       });
-    });
 
-    // Функція перемикання відтворення
+      document.removeEventListener('pointerdown', unlockAudio);
+    }
+
+    document.addEventListener('pointerdown', unlockAudio);
+
     function togglePlayback() {
-      if (!audioUnlocked) {
-        instructionText.textContent = '⚠️ Рухайте мишею або торкніться екрану для активації звуку!';
-        return;
-      }
+      unlockAudio();
 
       if (!isPlaying) {
         forest.pause();
@@ -332,8 +234,7 @@
           playBtn.classList.add('playing');
           instructionText.textContent = '🔊 Йде відтворення опису рослини...';
         }).catch(err => {
-          console.error('❌ Помилка відтворення:', err);
-          alert('Не вдалося відтворити аудіо');
+          console.error('Помилка відтворення:', err);
         });
       } else {
         audio.pause();
@@ -346,44 +247,31 @@
       }
     }
 
-    // Головна кнопка
     playBtn.addEventListener('click', (e) => {
-      e.stopPropagation(); // Щоб не спрацьовував дотик до body
+      e.stopPropagation();
       togglePlayback();
     });
 
-    // Дотик до екрану (поза кнопками) теж перемикає відтворення
-    document.body.addEventListener('click', (e) => {
-      // Перевіряємо, що клік був не по кнопках
-      if (!e.target.closest('button')) {
-        togglePlayback();
-      }
-    });
-
-    document.body.addEventListener('touchstart', (e) => {
-      if (!e.target.closest('button')) {
-        togglePlayback();
-      }
-    });
-
+    // Початок спочатку
     startBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (!audioUnlocked) return;
+      unlockAudio();
       
       audio.currentTime = 0;
-      audio.play().then(() => {
-        isPlaying = true;
-        btnIcon.textContent = '⏸️';
-        btnText.textContent = 'Пауза';
-        playBtn.classList.add('playing');
-        forest.pause();
-        instructionText.textContent = '🔊 Відтворення з початку...';
-      });
+      if (!isPlaying) {
+        togglePlayback();
+      }
     });
 
+    // Перемотка в кінець
     endBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (!audioUnlocked) return;
+      unlockAudio();
+      
+      if (audio.duration) {
+        audio.currentTime = audio.duration;
+        currentTimeEl.textContent = formatTime(audio.duration);
+      }
       
       audio.pause();
       isPlaying = false;
@@ -394,6 +282,7 @@
       forest.play();
     });
 
+    // Завершення аудіо
     audio.addEventListener('ended', () => {
       isPlaying = false;
       btnIcon.textContent = '▶️';
