@@ -12,6 +12,7 @@
       text-align: center;
       padding: 60px 20px;
       color: #2e4e2e;
+      transition: background-color 0.3s;
     }
 
     h2 {
@@ -28,20 +29,36 @@
       border-radius: 50px;
       cursor: pointer;
       box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .play-btn:hover {
+      background-color: #45a049;
+      transform: translateY(-2px);
     }
 
     .play-btn:active {
       transform: scale(0.96);
     }
 
+    /* Стиль для кнопки в режимі "Зупинити" */
     .play-btn.playing {
       background-color: #e74c3c;
+    }
+
+    .play-btn.playing:hover {
+      background-color: #c0392b;
     }
 
     .instruction {
       margin-top: 20px;
       font-size: 1.1em;
       font-style: italic;
+      color: #555;
+      min-height: 1.5em; /* Щоб текст не "стрибав" */
     }
   </style>
 </head>
@@ -51,10 +68,11 @@
   <h2>🌿 Прослухайте опис рослини</h2>
 
   <button class="play-btn" id="playBtn">
-    ▶️ Відтворити
+    <span id="btnIcon">▶️</span>
+    <span id="btnText">Відтворити</span>
   </button>
 
-  <div class="instruction">
+  <div class="instruction" id="instructionText">
     Натисніть кнопку, щоб почати аудіо
   </div>
 
@@ -71,61 +89,101 @@
 
   <script>
     const playBtn = document.getElementById('playBtn');
+    const btnIcon = document.getElementById('btnIcon');
+    const btnText = document.getElementById('btnText');
+    const instructionText = document.getElementById('instructionText');
+    
     const audio = document.getElementById('audio');
     const forest = document.getElementById('forest');
 
     let isPlaying = false;
+    let forestStarted = false;
 
+    // Встановлюємо гучність фону (35%)
     forest.volume = 0.35;
 
-    // Запускаем лес сразу при загрузке страницы
-    window.addEventListener('load', () => {
-      forest.play().catch(err => {
-        console.log('Автовідтворення заблоковано:', err);
-      });
+    // Функція запуску лісу
+    function startForest() {
+      if (forestStarted) return;
+      forest.play()
+        .then(() => {
+          forestStarted = true;
+          console.log('🌲 Звук лісу грає');
+        })
+        .catch(err => {
+          console.log('⚠️ Автовідтворення лісу заблоковано браузером:', err);
+        });
+    }
+
+    // 1. НАЛАШТУВАННЯ: Запускаємо ліс ОДРАЗУ при завантаженні сторінки
+    window.addEventListener('DOMContentLoaded', () => {
+      startForest();
+
+      // FALLBACK: Якщо браузер (наприклад, Safari або новий Chrome) заблокував автовідтворення,
+      // ми запускаємо звук лісу при ПЕРШІЙ-ЛІПШІЙ взаємодії користувача зі сторінкою (клік або дотик будь-де).
+      const enableAudioOnInteraction = () => {
+        if (!forestStarted) {
+          startForest();
+        }
+      };
+      document.addEventListener('click', enableAudioOnInteraction, { once: true });
+      document.addEventListener('touchstart', enableAudioOnInteraction, { once: true });
     });
 
-    // Кнопка
+    // 2 та 3. НАЛАШТУВАННЯ: Логіка кнопки з чіткою зміною іконки на "Стоп" та гарантованою зупинкою
     playBtn.addEventListener('click', () => {
       if (!isPlaying) {
-        // Останавливаем лес и запускаем речь
+        // --- ЗАПУСК АУДІО ---
+        
+        // Зупиняємо і скидаємо ліс
         forest.pause();
         forest.currentTime = 0;
 
+        // Запускаємо мову
         audio.currentTime = 0;
-        audio.play().catch(err => {
-          console.error('Помилка мови:', err);
-          alert('Не вдалося відтворити аудіо');
-        });
-
-        playBtn.innerHTML = '⏹️ Зупинити';
-        playBtn.classList.add('playing');
-        isPlaying = true;
+        audio.play()
+          .then(() => {
+            isPlaying = true;
+            // Змінюємо вигляд кнопки на "Стоп"
+            btnIcon.textContent = '⏹️';
+            btnText.textContent = 'Зупинити';
+            playBtn.classList.add('playing');
+            instructionText.textContent = 'Йде відтворення опису...';
+          })
+          .catch(err => {
+            console.error('❌ Помилка відтворення аудіо:', err);
+            alert('Не вдалося відтворити аудіо. Перевірте, чи файл Audio1.mp3 завантажено.');
+          });
 
       } else {
-        // Останавливаем речь и возвращаем лес
+        // --- ЗУПИНКА АУДІО (Ваша 2-га вимога) ---
+        
+        // Гарантовано зупиняємо мову і скидаємо на початок
         audio.pause();
         audio.currentTime = 0;
 
-        forest.play().catch(err => {
-          console.log('Автовідтворення заблоковано:', err);
-        });
+        // Повертаємо звук лісу
+        startForest();
 
-        playBtn.innerHTML = '▶️ Відтворити';
-        playBtn.classList.remove('playing');
+        // Повертаємо вигляд кнопки до стану "Відтворити"
         isPlaying = false;
+        btnIcon.textContent = '▶️';
+        btnText.textContent = 'Відтворити';
+        playBtn.classList.remove('playing');
+        instructionText.textContent = 'Аудіо зупинено. Натисніть, щоб відтворити знову.';
       }
     });
 
-    // Когда речь закончилась
+    // Коли основне аудіо закінчується природним шляхом
     audio.addEventListener('ended', () => {
-      playBtn.innerHTML = '▶️ Відтворити';
-      playBtn.classList.remove('playing');
       isPlaying = false;
-
-      forest.play().catch(err => {
-        console.log('Автовідтворення заблоковано:', err);
-      });
+      btnIcon.textContent = '▶️';
+      btnText.textContent = 'Відтворити';
+      playBtn.classList.remove('playing');
+      instructionText.textContent = 'Відтворення завершено. Натисніть, щоб прослухати ще раз.';
+      
+      // Повертаємо звук лісу
+      startForest();
     });
   </script>
 
