@@ -143,14 +143,14 @@
   <h2 class="main-title">🌿 Прослухайте опис рослини</h2>
 
   <div class="controls-container">
-    <button class="control-btn" id="startBtn" title="Повернутися на початок">⏮️</button>
+    <button class="control-btn" id="startBtn" title="Назад на 30 сек">⏮️</button>
     
     <button class="play-btn" id="playBtn">
       <span id="btnIcon">▶️</span>
       <span id="btnText">Відтворити</span>
     </button>
     
-    <button class="control-btn" id="endBtn" title="Перейти в кінець">⏭️</button>
+    <button class="control-btn" id="endBtn" title="Вперед на 30 сек">⏭️</button>
   </div>
 
   <div class="time-display" id="timeDisplay">
@@ -158,7 +158,7 @@
   </div>
 
   <div class="instruction" id="instructionText">
-    🌲 Торкніться екрана або натисніть кнопку для запуску
+    🌲 Торкніться екрана для запуску аудіо
   </div>
 
   <audio id="audio" preload="metadata">
@@ -184,7 +184,8 @@
     const audio = document.getElementById('audio');
     const forest = document.getElementById('forest');
 
-    let isPlaying = false;
+    let isPlayingDescription = false;
+    let isForestPlaying = false;
     let audioUnlocked = false;
 
     forest.volume = 0.35;
@@ -204,92 +205,111 @@
       durationEl.textContent = formatTime(audio.duration);
     });
 
-    // Активація фонового аудіо при першому жестів користувача
-    function unlockAudio() {
-      if (audioUnlocked) return;
-      
+    // Управління фоном лісу
+    function playForestSound() {
       forest.play().then(() => {
-        audioUnlocked = true;
-        if (!isPlaying) {
-          instructionText.textContent = '🌲 Фоновий звук грає. Натисніть "Відтворити" для опису.';
-        }
-      }).catch(err => {
-        console.log('Помилка активації фонового звуку:', err);
-      });
-
-      document.removeEventListener('pointerdown', unlockAudio);
+        isForestPlaying = true;
+      }).catch(err => console.log('Не вдалося запустити ліс:', err));
     }
 
-    document.addEventListener('pointerdown', unlockAudio);
+    function pauseForestSound() {
+      forest.pause();
+      isForestPlaying = false;
+    }
 
+    // Загальний перемикач відтворення опису
     function togglePlayback() {
-      unlockAudio();
+      if (!audioUnlocked) {
+        audioUnlocked = true;
+        playForestSound();
+        instructionText.textContent = '🌲 Фоновий звук грає. Натисніть "Відтворити" для опису.';
+        return;
+      }
 
-      if (!isPlaying) {
-        forest.pause();
+      if (!isPlayingDescription) {
+        pauseForestSound();
         audio.play().then(() => {
-          isPlaying = true;
+          isPlayingDescription = true;
           btnIcon.textContent = '⏸️';
           btnText.textContent = 'Пауза';
           playBtn.classList.add('playing');
           instructionText.textContent = '🔊 Йде відтворення опису рослини...';
-        }).catch(err => {
-          console.error('Помилка відтворення:', err);
-        });
+        }).catch(err => console.error('Помилка відтворення:', err));
       } else {
         audio.pause();
-        isPlaying = false;
+        isPlayingDescription = false;
         btnIcon.textContent = '▶️';
         btnText.textContent = 'Продовжити';
         playBtn.classList.remove('playing');
         instructionText.textContent = '⏸️ Аудіо на паузі. Грає фоновий звук лісу.';
-        forest.play();
+        playForestSound();
       }
     }
+
+    // Пауза/Старт всього аудіо при доторку до порожнього екрана
+    function handleScreenTouch(e) {
+      if (e.target.closest('button')) return;
+
+      if (!audioUnlocked) {
+        audioUnlocked = true;
+        playForestSound();
+        instructionText.textContent = '🌲 Фоновий звук грає. Торкніться кнопкою для опису.';
+        return;
+      }
+
+      // Якщо зараз грає опис — ставимо його на паузу
+      if (isPlayingDescription) {
+        togglePlayback();
+      } 
+      // Якщо грає звук лісу — ставимо його на паузу
+      else if (isForestPlaying) {
+        pauseForestSound();
+        instructionText.textContent = '⏸️ Звук на паузі. Торкніться екрана для продовження.';
+      } 
+      // Якщо взагалі нічого не грає — відновлюємо звук лісу
+      else {
+        playForestSound();
+        instructionText.textContent = '🌲 Фоновий звук грає. Натисніть "Відтворити" для опису.';
+      }
+    }
+
+    document.body.addEventListener('click', handleScreenTouch);
 
     playBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       togglePlayback();
     });
 
-    // Початок спочатку
+    // Перемотка на 30 секунд назад
     startBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      unlockAudio();
+      if (!audioUnlocked) return;
       
-      audio.currentTime = 0;
-      if (!isPlaying) {
-        togglePlayback();
-      }
+      audio.currentTime = Math.max(0, audio.currentTime - 30);
+      currentTimeEl.textContent = formatTime(audio.currentTime);
+      instructionText.textContent = '⏪ Перемотано на 30 секунд назад';
     });
 
-    // Перемотка в кінець
+    // Перемотка на 30 секунд вперед
     endBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      unlockAudio();
+      if (!audioUnlocked) return;
       
       if (audio.duration) {
-        audio.currentTime = audio.duration;
-        currentTimeEl.textContent = formatTime(audio.duration);
+        audio.currentTime = Math.min(audio.duration, audio.currentTime + 30);
+        currentTimeEl.textContent = formatTime(audio.currentTime);
+        instructionText.textContent = '⏩ Перемотано на 30 секунд вперед';
       }
-      
-      audio.pause();
-      isPlaying = false;
-      btnIcon.textContent = '▶️';
-      btnText.textContent = 'Відтворити';
-      playBtn.classList.remove('playing');
-      instructionText.textContent = '✅ Відтворення завершено. Грає фоновий звук лісу.';
-      forest.play();
     });
 
-    // Завершення аудіо
+    // Завершення аудіо опису
     audio.addEventListener('ended', () => {
-      isPlaying = false;
+      isPlayingDescription = false;
       btnIcon.textContent = '▶️';
       btnText.textContent = 'Відтворити';
       playBtn.classList.remove('playing');
       instructionText.textContent = '✅ Відтворення завершено. Грає фоновий звук лісу.';
-      forest.play();
+      playForestSound();
     });
   </script>
 
