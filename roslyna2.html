@@ -28,7 +28,6 @@
       border-radius: 50px;
       cursor: pointer;
       box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-      transition: transform 0.1s;
     }
 
     .play-btn:active {
@@ -47,7 +46,7 @@
 
   <h2>🌿 Прослухайте опис рослини</h2>
 
-  <button class="play-btn" id="playBtn">
+  <button class="play-btn" onclick="playAll()">
     ▶️ Відтворити
   </button>
 
@@ -55,47 +54,34 @@
     Натисніть кнопку, щоб почати аудіо
   </div>
 
-  <!-- Основне аудіо (опис рослини) -->
+  <!-- Основне аудіо -->
   <audio id="audio">
     <source src="Audio1.mp3" type="audio/mpeg">
     Ваш браузер не підтримує аудіо.
   </audio>
 
   <!-- Фоновий звук лісу -->
-  <audio id="forest" loop preload="auto">
+  <audio id="forest" loop>
     <source src="Trees.aac" type="audio/aac">
-    <source src="Trees.aac" type="audio/mp4">
   </audio>
 
   <script>
-    const playBtn = document.getElementById('playBtn');
-    const audio = document.getElementById('audio');
     const forest = document.getElementById('forest');
+    forest.volume = 0.3; // гучність фону (можна змінити)
 
-    // Гучність фону (0.0 – 1.0)
-    forest.volume = 0.35;
+    // Функція, яка запускає і опис, і фон
+    function playAll() {
+      // Запускаємо фон лісу
+      forest.play().catch(e => console.log('Фон не запустився:', e));
 
-    // Спроба запустити фон одразу при відкритті сторінки
-    function startForest() {
-      forest.play().catch(() => {
-        // Браузер заблокував автовідтворення — запустимо при першому кліку
-      });
+      // Запускаємо опис рослини
+      document.getElementById('audio').play();
     }
 
-    // Запускаємо фон
-    startForest();
-
-    // Кнопка відтворення опису
-    playBtn.addEventListener('click', () => {
-      // Якщо фон ще не грає — запускаємо його
-      if (forest.paused) {
-        forest.play().catch(() => {});
-      }
-
-      // Відтворюємо опис рослини
-      audio.play().catch(err => {
-        console.error('Помилка відтворення:', err);
-        alert('Не вдалося відтворити аудіо. Перевір файл Audio1.mp3');
+    // Спроба запустити фон одразу при відкритті сторінки
+    window.addEventListener('load', () => {
+      forest.play().catch(() => {
+        // Браузер заборонив автовідтворення — фон запуститься при натисканні кнопки
       });
     });
   </script>
