@@ -97,7 +97,6 @@
       background-color: #c0392b;
     }
 
-    /* ВІДОВБРАЖЕННЯ ЧАСУ - ЯСКРАВИЙ ТА ПОМІТНИЙ */
     .time-display {
       margin-top: 20px;
       font-size: 1.3em;
@@ -124,7 +123,6 @@
       min-height: 1.5em;
     }
 
-    /* АДАПТИВНІСТЬ ДЛЯ ТЕЛЕФОНІВ */
     @media (max-width: 768px) {
       body {
         padding: 40px 15px;
@@ -226,7 +224,6 @@
     <button class="control-btn" id="endBtn" title="Перейти в кінець">⏭️</button>
   </div>
 
-  <!-- ВІДОВБРАЖЕННЯ ЧАСУ -->
   <div class="time-display" id="timeDisplay">
     <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
   </div>
@@ -265,7 +262,6 @@
 
     forest.volume = 0.35;
 
-    // Функція форматування часу (секунди -> ММ:СС)
     function formatTime(seconds) {
       if (isNaN(seconds) || seconds < 0) return "0:00";
       
@@ -275,24 +271,20 @@
       return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
 
-    // Оновлення часу відтворення
     audio.addEventListener('timeupdate', () => {
       currentTimeEl.textContent = formatTime(audio.currentTime);
     });
 
-    // Отримання загальної тривалості аудіо
     audio.addEventListener('loadedmetadata', () => {
       durationEl.textContent = formatTime(audio.duration);
     });
 
-    // Якщо метадані ще не завантажені
     audio.addEventListener('canplay', () => {
       if (durationEl.textContent === '0:00') {
         durationEl.textContent = formatTime(audio.duration);
       }
     });
 
-    // Скидання часу коли аудіо закінчується
     audio.addEventListener('ended', () => {
       currentTimeEl.textContent = formatTime(audio.duration);
     });
@@ -302,7 +294,7 @@
       
       forest.play().then(() => {
         audioUnlocked = true;
-        instructionText.textContent = '🌲 Звук лісу грає. Натисніть кнопку для опису.';
+        instructionText.textContent = '🌲 Звук лісу грає. Натисніть кнопку або торкніться екрану для опису.';
         console.log('✅ Звук лісу автоматично запущено');
       }).catch(err => {
         console.log('⚠️ Автоматичний запуск заблоковано, чекаємо на взаємодію...');
@@ -312,7 +304,7 @@
           if (!audioUnlocked) {
             forest.play().then(() => {
               audioUnlocked = true;
-              instructionText.textContent = '🌲 Звук лісу грає. Натисніть кнопку для опису.';
+              instructionText.textContent = '🌲 Звук лісу грає. Натисніть кнопку або торкніться екрану для опису.';
               console.log('✅ Звук розблоковано при взаємодії');
             });
           }
@@ -324,7 +316,8 @@
       });
     });
 
-    playBtn.addEventListener('click', () => {
+    // Функція перемикання відтворення
+    function togglePlayback() {
       if (!audioUnlocked) {
         instructionText.textContent = '⚠️ Рухайте мишею або торкніться екрану для активації звуку!';
         return;
@@ -351,9 +344,30 @@
         instructionText.textContent = '⏸️ Аудіо на паузі. Грає фоновий звук лісу.';
         forest.play();
       }
+    }
+
+    // Головна кнопка
+    playBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Щоб не спрацьовував дотик до body
+      togglePlayback();
     });
 
-    startBtn.addEventListener('click', () => {
+    // Дотик до екрану (поза кнопками) теж перемикає відтворення
+    document.body.addEventListener('click', (e) => {
+      // Перевіряємо, що клік був не по кнопках
+      if (!e.target.closest('button')) {
+        togglePlayback();
+      }
+    });
+
+    document.body.addEventListener('touchstart', (e) => {
+      if (!e.target.closest('button')) {
+        togglePlayback();
+      }
+    });
+
+    startBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       if (!audioUnlocked) return;
       
       audio.currentTime = 0;
@@ -367,7 +381,8 @@
       });
     });
 
-    endBtn.addEventListener('click', () => {
+    endBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       if (!audioUnlocked) return;
       
       audio.pause();
