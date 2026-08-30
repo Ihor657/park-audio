@@ -12,10 +12,45 @@
       text-align: center;
       padding: 60px 20px;
       color: #2e4e2e;
-      transition: background-color 0.3s;
+      margin: 0;
     }
 
-    h2 {
+    /* Стартовий екран для розблокування звуку */
+    #startOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(46, 78, 46, 0.95);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      cursor: pointer;
+      transition: opacity 0.5s ease;
+    }
+
+    #startOverlay h2 {
+      font-size: 2em;
+      margin-bottom: 20px;
+      color: white;
+    }
+
+    #startOverlay p {
+      font-size: 1.2em;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
+    }
+
+    h2.main-title {
       font-size: 2em;
       margin-bottom: 15px;
     }
@@ -44,7 +79,6 @@
       transform: scale(0.96);
     }
 
-    /* Стиль для кнопки в режимі "Зупинити" */
     .play-btn.playing {
       background-color: #e74c3c;
     }
@@ -58,22 +92,28 @@
       font-size: 1.1em;
       font-style: italic;
       color: #555;
-      min-height: 1.5em; /* Щоб текст не "стрибав" */
+      min-height: 1.5em;
     }
   </style>
 </head>
 
 <body>
 
-  <h2>🌿 Прослухайте опис рослини</h2>
+  <!-- Стартовий екран для розблокування аудіо в браузері -->
+  <div id="startOverlay">
+    <h2>🌿 Ласкаво просимо</h2>
+    <p>▶️ Натисніть будь-де на екрані, щоб увімкнути звук лісу</p>
+  </div>
+
+  <h2 class="main-title">Прослухайте опис рослини</h2>
 
   <button class="play-btn" id="playBtn">
     <span id="btnIcon">▶️</span>
-    <span id="btnText">Відтворити</span>
+    <span id="btnText">Відтворити опис</span>
   </button>
 
   <div class="instruction" id="instructionText">
-    Натисніть кнопку, щоб почати аудіо
+    Спочатку натисніть на екран вище, щоб активувати звук
   </div>
 
   <!-- Основне аудіо (мова) -->
@@ -88,6 +128,7 @@
   </audio>
 
   <script>
+    const startOverlay = document.getElementById('startOverlay');
     const playBtn = document.getElementById('playBtn');
     const btnIcon = document.getElementById('btnIcon');
     const btnText = document.getElementById('btnText');
@@ -97,95 +138,11 @@
     const forest = document.getElementById('forest');
 
     let isPlaying = false;
-    let forestStarted = false;
+    let audioUnlocked = false;
 
-    // Встановлюємо гучність фону (35%)
     forest.volume = 0.35;
 
-    // Функція запуску лісу
-    function startForest() {
-      if (forestStarted) return;
-      forest.play()
-        .then(() => {
-          forestStarted = true;
-          console.log('🌲 Звук лісу грає');
-        })
-        .catch(err => {
-          console.log('⚠️ Автовідтворення лісу заблоковано браузером:', err);
-        });
-    }
-
-    // 1. НАЛАШТУВАННЯ: Запускаємо ліс ОДРАЗУ при завантаженні сторінки
-    window.addEventListener('DOMContentLoaded', () => {
-      startForest();
-
-      // FALLBACK: Якщо браузер (наприклад, Safari або новий Chrome) заблокував автовідтворення,
-      // ми запускаємо звук лісу при ПЕРШІЙ-ЛІПШІЙ взаємодії користувача зі сторінкою (клік або дотик будь-де).
-      const enableAudioOnInteraction = () => {
-        if (!forestStarted) {
-          startForest();
-        }
-      };
-      document.addEventListener('click', enableAudioOnInteraction, { once: true });
-      document.addEventListener('touchstart', enableAudioOnInteraction, { once: true });
-    });
-
-    // 2 та 3. НАЛАШТУВАННЯ: Логіка кнопки з чіткою зміною іконки на "Стоп" та гарантованою зупинкою
-    playBtn.addEventListener('click', () => {
-      if (!isPlaying) {
-        // --- ЗАПУСК АУДІО ---
-        
-        // Зупиняємо і скидаємо ліс
-        forest.pause();
-        forest.currentTime = 0;
-
-        // Запускаємо мову
-        audio.currentTime = 0;
-        audio.play()
-          .then(() => {
-            isPlaying = true;
-            // Змінюємо вигляд кнопки на "Стоп"
-            btnIcon.textContent = '⏹️';
-            btnText.textContent = 'Зупинити';
-            playBtn.classList.add('playing');
-            instructionText.textContent = 'Йде відтворення опису...';
-          })
-          .catch(err => {
-            console.error('❌ Помилка відтворення аудіо:', err);
-            alert('Не вдалося відтворити аудіо. Перевірте, чи файл Audio1.mp3 завантажено.');
-          });
-
-      } else {
-        // --- ЗУПИНКА АУДІО (Ваша 2-га вимога) ---
-        
-        // Гарантовано зупиняємо мову і скидаємо на початок
-        audio.pause();
-        audio.currentTime = 0;
-
-        // Повертаємо звук лісу
-        startForest();
-
-        // Повертаємо вигляд кнопки до стану "Відтворити"
-        isPlaying = false;
-        btnIcon.textContent = '▶️';
-        btnText.textContent = 'Відтворити';
-        playBtn.classList.remove('playing');
-        instructionText.textContent = 'Аудіо зупинено. Натисніть, щоб відтворити знову.';
-      }
-    });
-
-    // Коли основне аудіо закінчується природним шляхом
-    audio.addEventListener('ended', () => {
-      isPlaying = false;
-      btnIcon.textContent = '▶️';
-      btnText.textContent = 'Відтворити';
-      playBtn.classList.remove('playing');
-      instructionText.textContent = 'Відтворення завершено. Натисніть, щоб прослухати ще раз.';
-      
-      // Повертаємо звук лісу
-      startForest();
-    });
-  </script>
-
-</body>
-</html>
+    // 1. РОЗБЛОКУВАННЯ ЗВУКУ: Працює при першому кліці по стартовому екрану
+    startOverlay.addEventListener('click', () => {
+      if (!audioUnlocked) {
+        forest
