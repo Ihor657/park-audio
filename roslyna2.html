@@ -90,8 +90,54 @@
       background-color: #c0392b;
     }
 
+    .progress-container {
+      width: 80%;
+      max-width: 400px;
+      margin: 25px auto 10px auto;
+      display: flex;
+      align-items: center;
+    }
+
+    .seek-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 5px;
+      background: #c8e6c9;
+      outline: none;
+      cursor: pointer;
+      transition: background 0.15s ease-in-out;
+    }
+
+    .seek-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #4CAF50;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: transform 0.1s ease;
+    }
+
+    .seek-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .seek-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border: none;
+      border-radius: 50%;
+      background: #4CAF50;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
     .time-display {
-      margin-top: 20px;
+      margin-top: 10px;
       font-size: 1.3em;
       font-weight: bold;
       color: white;
@@ -124,6 +170,7 @@
       .play-btn { padding: 15px 20px; font-size: 1.1em; min-width: 160px; gap: 8px; }
       .time-display { font-size: 1.1em; padding: 10px 20px; min-width: 150px; margin-top: 15px; }
       .instruction { margin-top: 20px; font-size: 0.95em; }
+      .progress-container { width: 90%; }
     }
 
     @media (max-width: 480px) {
@@ -134,6 +181,7 @@
       .play-btn { padding: 12px 15px; font-size: 1em; min-width: 140px; gap: 6px; }
       .time-display { font-size: 1em; padding: 8px 15px; min-width: 140px; margin-top: 12px; }
       .instruction { font-size: 0.85em; margin-top: 15px; }
+      .progress-container { width: 95%; }
     }
   </style>
 </head>
@@ -151,6 +199,10 @@
     </button>
     
     <button class="control-btn" id="endBtn" title="Вперед на 30 сек">⏭️</button>
+  </div>
+
+  <div class="progress-container">
+    <input type="range" id="seekBar" class="seek-slider" value="0" min="0" max="100" step="0.1">
   </div>
 
   <div class="time-display" id="timeDisplay">
@@ -174,6 +226,7 @@
     const startBtn = document.getElementById('startBtn');
     const playBtn = document.getElementById('playBtn');
     const endBtn = document.getElementById('endBtn');
+    const seekBar = document.getElementById('seekBar');
     const currentTimeEl = document.getElementById('currentTime');
     const durationEl = document.getElementById('duration');
     
@@ -187,6 +240,7 @@
     let isPlayingDescription = false;
     let isForestPlaying = false;
     let audioUnlocked = false;
+    let isSeeking = false;
 
     forest.volume = 0.35;
 
@@ -197,15 +251,44 @@
       return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
 
+    // Оновлення таймера і повзунка під час програвання
     audio.addEventListener('timeupdate', () => {
-      currentTimeEl.textContent = formatTime(audio.currentTime);
+      if (!isSeeking && audio.duration) {
+        currentTimeEl.textContent = formatTime(audio.currentTime);
+        const progressPercentage = (audio.currentTime / audio.duration) * 100;
+        seekBar.value = progressPercentage;
+      }
     });
 
     audio.addEventListener('loadedmetadata', () => {
       durationEl.textContent = formatTime(audio.duration);
     });
 
-    // Управління фоном лісу
+    // Обробка взаємодії з повзунком
+    seekBar.addEventListener('input', (e) => {
+      e.stopPropagation();
+      isSeeking = true;
+      if (audio.duration) {
+        const seekTime = (seekBar.value / 100) * audio.duration;
+        currentTimeEl.textContent = formatTime(seekTime);
+      }
+    });
+
+    seekBar.addEventListener('change', (e) => {
+      e.stopPropagation();
+      if (!audioUnlocked) {
+        audioUnlocked = true;
+      }
+      if (audio.duration) {
+        audio.currentTime = (seekBar.value / 100) * audio.duration;
+      }
+      isSeeking = false;
+    });
+
+    // Зупиняємо спливання подій кліку з повзунка
+    seekBar.addEventListener('click', (e) => e.stopPropagation());
+    seekBar.addEventListener('touchstart', (e) => e.stopPropagation());
+
     function playForestSound() {
       forest.play().then(() => {
         isForestPlaying = true;
@@ -217,7 +300,6 @@
       isForestPlaying = false;
     }
 
-    // Загальний перемикач відтворення опису
     function togglePlayback() {
       if (!audioUnlocked) {
         audioUnlocked = true;
@@ -246,9 +328,8 @@
       }
     }
 
-    // Пауза/Старт всього аудіо при доторку до порожнього екрана
     function handleScreenTouch(e) {
-      if (e.target.closest('button')) return;
+      if (e.target.closest('button') || e.target.closest('#seekBar')) return;
 
       if (!audioUnlocked) {
         audioUnlocked = true;
@@ -257,16 +338,13 @@
         return;
       }
 
-      // Якщо зараз грає опис — ставимо його на паузу
       if (isPlayingDescription) {
         togglePlayback();
       } 
-      // Якщо грає звук лісу — ставимо його на паузу
       else if (isForestPlaying) {
         pauseForestSound();
         instructionText.textContent = '⏸️ Звук на паузі. Торкніться екрана для продовження.';
       } 
-      // Якщо взагалі нічого не грає — відновлюємо звук лісу
       else {
         playForestSound();
         instructionText.textContent = '🌲 Фоновий звук грає. Натисніть "Відтворити" для опису.';
@@ -280,7 +358,6 @@
       togglePlayback();
     });
 
-    // Перемотка на 30 секунд назад
     startBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       if (!audioUnlocked) return;
@@ -290,7 +367,6 @@
       instructionText.textContent = '⏪ Перемотано на 30 секунд назад';
     });
 
-    // Перемотка на 30 секунд вперед
     endBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       if (!audioUnlocked) return;
@@ -302,7 +378,6 @@
       }
     });
 
-    // Завершення аудіо опису
     audio.addEventListener('ended', () => {
       isPlayingDescription = false;
       btnIcon.textContent = '▶️';
