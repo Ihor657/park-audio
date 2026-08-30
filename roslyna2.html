@@ -34,6 +34,10 @@
       transform: scale(0.96);
     }
 
+    .play-btn.playing {
+      background-color: #e74c3c; /* червона, коли грає */
+    }
+
     .instruction {
       margin-top: 20px;
       font-size: 1.1em;
@@ -46,7 +50,7 @@
 
   <h2>🌿 Прослухайте опис рослини</h2>
 
-  <button class="play-btn" onclick="playAll()">
+  <button class="play-btn" id="playBtn">
     ▶️ Відтворити
   </button>
 
@@ -54,35 +58,75 @@
     Натисніть кнопку, щоб почати аудіо
   </div>
 
-  <!-- Основне аудіо -->
+  <!-- Основне аудіо (мова) -->
   <audio id="audio">
     <source src="Audio1.mp3" type="audio/mpeg">
     Ваш браузер не підтримує аудіо.
   </audio>
 
   <!-- Фоновий звук лісу -->
-  <audio id="forest" loop>
+  <audio id="forest" loop preload="auto">
     <source src="Trees.aac" type="audio/aac">
   </audio>
 
   <script>
+    const playBtn = document.getElementById('playBtn');
+    const audio = document.getElementById('audio');
     const forest = document.getElementById('forest');
-    forest.volume = 0.3; // гучність фону (можна змінити)
 
-    // Функція, яка запускає і опис, і фон
-    function playAll() {
-      // Запускаємо фон лісу
-      forest.play().catch(e => console.log('Фон не запустився:', e));
+    let isPlaying = false;
 
-      // Запускаємо опис рослини
-      document.getElementById('audio').play();
+    // Гучність фону
+    forest.volume = 0.35;
+
+    // Запускаємо звук лісу одразу при відкритті сторінки
+    function startForest() {
+      forest.play().catch(() => {
+        // Якщо браузер заблокував — спробуємо ще раз при першій взаємодії
+        document.body.addEventListener('click', () => {
+          if (forest.paused && !isPlaying) {
+            forest.play().catch(() => {});
+          }
+        }, { once: true });
+      });
     }
 
-    // Спроба запустити фон одразу при відкритті сторінки
-    window.addEventListener('load', () => {
-      forest.play().catch(() => {
-        // Браузер заборонив автовідтворення — фон запуститься при натисканні кнопки
-      });
+    startForest();
+
+    // Обробка кнопки
+    playBtn.addEventListener('click', () => {
+      if (!isPlaying) {
+        // === ПОЧАТИ МОВУ ===
+        forest.pause();           // зупиняємо ліс
+        forest.currentTime = 0;
+
+        audio.currentTime = 0;
+        audio.play();
+
+        playBtn.innerHTML = '⏹️ Зупинити';
+        playBtn.classList.add('playing');
+        isPlaying = true;
+
+      } else {
+        // === ЗУПИНИТИ МОВУ ===
+        audio.pause();
+        audio.currentTime = 0;
+
+        // Повертаємо звук лісу
+        forest.play().catch(() => {});
+
+        playBtn.innerHTML = '▶️ Відтворити';
+        playBtn.classList.remove('playing');
+        isPlaying = false;
+      }
+    });
+
+    // Коли мова закінчилася — автоматично повертаємо кнопку і ліс
+    audio.addEventListener('ended', () => {
+      playBtn.innerHTML = '▶️ Відтворити';
+      playBtn.classList.remove('playing');
+      isPlaying = false;
+      forest.play().catch(() => {});
     });
   </script>
 
