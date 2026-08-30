@@ -15,7 +15,7 @@
       margin: 0;
     }
 
-    /* Прихована кнопка для розблокування аудіо */
+    /* Прихована кнопка для автоматичного розблокування аудіо */
     #hiddenUnlockBtn {
       position: absolute;
       top: -9999px;
@@ -105,12 +105,81 @@
       color: #555;
       min-height: 1.5em;
     }
+
+    /* АДАПТИВНІСТЬ ДЛЯ ТЕЛЕФОНІВ */
+    @media (max-width: 768px) {
+      body {
+        padding: 40px 15px;
+      }
+
+      h2.main-title {
+        font-size: 1.5em;
+        margin-bottom: 10px;
+      }
+
+      .controls-container {
+        gap: 10px;
+        margin-top: 15px;
+      }
+
+      .control-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1em;
+        padding: 12px;
+      }
+
+      .play-btn {
+        padding: 15px 20px;
+        font-size: 1.1em;
+        min-width: 160px;
+        gap: 8px;
+      }
+
+      .instruction {
+        margin-top: 20px;
+        font-size: 0.95em;
+      }
+    }
+
+    /* ДУЖЕ МАЛЕНЬКІ ЕКРАНИ (старі телефони) */
+    @media (max-width: 480px) {
+      body {
+        padding: 30px 10px;
+      }
+
+      h2.main-title {
+        font-size: 1.3em;
+      }
+
+      .controls-container {
+        gap: 8px;
+      }
+
+      .control-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 0.9em;
+        padding: 10px;
+      }
+
+      .play-btn {
+        padding: 12px 15px;
+        font-size: 1em;
+        min-width: 140px;
+        gap: 6px;
+      }
+
+      .instruction {
+        font-size: 0.85em;
+        margin-top: 15px;
+      }
+    }
   </style>
 </head>
 
 <body>
 
-  <!-- Прихована кнопка для автоматичного розблокування звуку -->
   <button id="hiddenUnlockBtn"></button>
 
   <h2 class="main-title">🌿 Прослухайте опис рослини</h2>
@@ -157,12 +226,9 @@
 
     forest.volume = 0.35;
 
-    // 1. АВТОМАТИЧНЕ РОЗБЛОКУВАННЯ ЗВУКУ ПРИ ЗАВАНТАЖЕННІ
     window.addEventListener('DOMContentLoaded', () => {
-      // Програмно "клікаємо" приховану кнопку для розблокування аудіо
       hiddenUnlockBtn.click();
       
-      // Спроба запустити звук лісу
       forest.play().then(() => {
         audioUnlocked = true;
         instructionText.textContent = '🌲 Звук лісу грає. Натисніть кнопку для опису.';
@@ -171,7 +237,6 @@
         console.log('⚠️ Автоматичний запуск заблоковано, чекаємо на взаємодію...');
         instructionText.textContent = '🌲 Рухайте мишею або торкніться екрану для активації звуку';
         
-        // FALLBACK: Запускаємо при першій взаємодії користувача
         const unlockOnInteraction = () => {
           if (!audioUnlocked) {
             forest.play().then(() => {
@@ -188,7 +253,6 @@
       });
     });
 
-    // 2. ГОЛОВНА КНОПКА (ПАУЗА / ПРОДОВЖИТИ)
     playBtn.addEventListener('click', () => {
       if (!audioUnlocked) {
         instructionText.textContent = '⚠️ Рухайте мишею або торкніться екрану для активації звуку!';
@@ -218,7 +282,6 @@
       }
     });
 
-    // 3. КНОПКА "НА ПОЧАТОК"
     startBtn.addEventListener('click', () => {
       if (!audioUnlocked) return;
       
@@ -233,7 +296,6 @@
       });
     });
 
-    // 4. КНОПКА "В КІНЕЦЬ"
     endBtn.addEventListener('click', () => {
       if (!audioUnlocked) return;
       
@@ -246,7 +308,6 @@
       forest.play();
     });
 
-    // 5. КОЛИ МОВА ЗАКІНЧУЄТЬСЯ
     audio.addEventListener('ended', () => {
       isPlaying = false;
       btnIcon.textContent = '▶️';
