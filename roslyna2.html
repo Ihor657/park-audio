@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Опис рослини</title>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f2fff2;
+      text-align: center;
+      padding: 60px 20px;
+      color: #2e4e2e;
+    }
+
+    h2 {
+      font-size: 2em;
+      margin-bottom: 15px;
+    }
+
+    .play-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 20px 40px;
+      font-size: 1.5em;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    }
+
+    .play-btn:active {
+      transform: scale(0.96);
+    }
+
+    .instruction {
+      margin-top: 20px;
+      font-size: 1.1em;
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>🌿 Прослухайте опис рослини</h2>
+
+  <button class="play-btn"
+          onclick="document.getElementById('audio').play()">
+    ▶️ Відтворити
+  </button>
+
+  <div class="instruction">
+    Натисніть кнопку, щоб почати аудіо
+  </div>
+
+  <audio id="audio">
+    <source src="Audio1.mp3" type="audio/mpeg">
+    Ваш браузер не підтримує аудіо.
+  </audio>
+
+</body>
+</html>
