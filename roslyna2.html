@@ -326,7 +326,7 @@
           
           // Оновлюємо надпис, як тільки звук лісу пішов
           if (!isPlayingDescription) {
-            instructionText.textContent = '🌲 Фоновий звук грає. Натисніть кнопку для опису.';
+            instructionText.textContent = '🌲 Фоновий звук грає';
           }
 
           const step = 0.02;
@@ -385,7 +385,7 @@
         audioUnlocked = true;
         userPausedForest = false;
         playForestSound();
-        instructionText.textContent = '🌲 Фоновий звук грає. Натисніть кнопку для опису.';
+        instructionText.textContent = '🌲 Фоновий звук грає';
         return;
       }
 
@@ -396,7 +396,7 @@
       } else if (!isPlayingDescription) {
         userPausedForest = false;
         playForestSound();
-        instructionText.textContent = '🌲 Фоновий звук грає. Натисніть кнопку для опису.';
+        instructionText.textContent = '🌲 Фоновий звук грає. Фоновий звук грає';
       }
     });
 
