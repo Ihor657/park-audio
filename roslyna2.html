@@ -35,7 +35,7 @@
     }
 
     .play-btn.playing {
-      background-color: #e74c3c; /* червона, коли грає */
+      background-color: #e74c3c;
     }
 
     .instruction {
@@ -59,14 +59,14 @@
   </div>
 
   <!-- Основне аудіо (мова) -->
-  <audio id="audio">
+  <audio id="audio" preload="auto">
     <source src="Audio1.mp3" type="audio/mpeg">
-    Ваш браузер не підтримує аудіо.
   </audio>
 
   <!-- Фоновий звук лісу -->
   <audio id="forest" loop preload="auto">
     <source src="Trees.aac" type="audio/aac">
+    <source src="Trees.aac" type="audio/mp4">
   </audio>
 
   <script>
@@ -75,45 +75,63 @@
     const forest = document.getElementById('forest');
 
     let isPlaying = false;
+    let forestStarted = false;
 
-    // Гучність фону
     forest.volume = 0.35;
 
-    // Запускаємо звук лісу одразу при відкритті сторінки
+    // Функція запуску лісу
     function startForest() {
-      forest.play().catch(() => {
-        // Якщо браузер заблокував — спробуємо ще раз при першій взаємодії
-        document.body.addEventListener('click', () => {
-          if (forest.paused && !isPlaying) {
-            forest.play().catch(() => {});
-          }
-        }, { once: true });
-      });
+      if (forestStarted) return;
+      forest.play()
+        .then(() => {
+          forestStarted = true;
+          console.log('Ліс грає');
+        })
+        .catch(err => {
+          console.log('Автовідтворення заблоковано:', err);
+        });
     }
 
+    // Спроба запустити ліс одразу
     startForest();
 
-    // Обробка кнопки
+    // Якщо браузер заблокував — запускаємо при будь-якій взаємодії
+    document.body.addEventListener('click', () => {
+      if (!forestStarted && !isPlaying) {
+        startForest();
+      }
+    }, { once: true });
+
+    // Також при дотику (для телефонів)
+    document.body.addEventListener('touchstart', () => {
+      if (!forestStarted && !isPlaying) {
+        startForest();
+      }
+    }, { once: true });
+
+    // Кнопка
     playBtn.addEventListener('click', () => {
       if (!isPlaying) {
-        // === ПОЧАТИ МОВУ ===
-        forest.pause();           // зупиняємо ліс
+        // Зупиняємо ліс і запускаємо мову
+        forest.pause();
         forest.currentTime = 0;
 
         audio.currentTime = 0;
-        audio.play();
+        audio.play().catch(err => {
+          console.error('Помилка мови:', err);
+          alert('Не вдалося відтворити аудіо');
+        });
 
         playBtn.innerHTML = '⏹️ Зупинити';
         playBtn.classList.add('playing');
         isPlaying = true;
 
       } else {
-        // === ЗУПИНИТИ МОВУ ===
+        // Зупиняємо мову і повертаємо ліс
         audio.pause();
         audio.currentTime = 0;
 
-        // Повертаємо звук лісу
-        forest.play().catch(() => {});
+        startForest();
 
         playBtn.innerHTML = '▶️ Відтворити';
         playBtn.classList.remove('playing');
@@ -121,12 +139,12 @@
       }
     });
 
-    // Коли мова закінчилася — автоматично повертаємо кнопку і ліс
+    // Коли мова закінчилася
     audio.addEventListener('ended', () => {
       playBtn.innerHTML = '▶️ Відтворити';
       playBtn.classList.remove('playing');
       isPlaying = false;
-      forest.play().catch(() => {});
+      startForest();
     });
   </script>
 
