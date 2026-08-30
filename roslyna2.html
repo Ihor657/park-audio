@@ -18,15 +18,15 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
-      padding: 20px;
+      align-items: flex-start; /* Піднімає блок уверх */
+      padding: 40px 20px 20px 20px;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* Картка-контейнер з сучасним розмиттям */
+    /* Картка-контейнер */
     .card {
-      background: rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border-radius: 24px;
@@ -34,8 +34,8 @@
       width: 100%;
       max-width: 480px;
       text-align: center;
-      box-shadow: 0 15px 35px rgba(27, 67, 50, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 15px 35px rgba(27, 67, 50, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.8);
       position: relative;
     }
 
@@ -78,8 +78,9 @@
       margin-top: 10px;
     }
 
+    /* Світліша зелена кнопка */
     .play-btn {
-      background-color: #2d6a4f;
+      background-color: #38a169;
       color: white;
       border: none;
       padding: 16px 32px;
@@ -87,7 +88,7 @@
       font-weight: 600;
       border-radius: 50px;
       cursor: pointer;
-      box-shadow: 0 6px 16px rgba(45, 106, 79, 0.25);
+      box-shadow: 0 6px 16px rgba(56, 161, 105, 0.3);
       transition: all 0.25s ease;
       display: inline-flex;
       align-items: center;
@@ -97,7 +98,7 @@
     }
 
     .play-btn:hover {
-      background-color: #1b4332;
+      background-color: #2f855a;
       transform: translateY(-2px);
     }
 
@@ -125,7 +126,7 @@
       width: 100%;
       height: 8px;
       border-radius: 4px;
-      background: #b7e4c7;
+      background: #c8e6c9;
       outline: none;
       cursor: pointer;
     }
@@ -136,7 +137,7 @@
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: #2d6a4f;
+      background: #38a169;
       cursor: pointer;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       transition: transform 0.1s ease;
@@ -149,8 +150,8 @@
     .time-display {
       font-size: 1.1em;
       font-weight: 700;
-      color: #2d6a4f;
-      background: rgba(183, 228, 199, 0.4);
+      color: #2f855a;
+      background: rgba(200, 230, 201, 0.4);
       padding: 8px 20px;
       border-radius: 20px;
       display: inline-block;
@@ -159,7 +160,7 @@
     .instruction {
       margin-top: 20px;
       font-size: 0.95em;
-      color: #40916c;
+      color: #2f855a;
       min-height: 2.4em;
       line-height: 1.4;
     }
@@ -292,7 +293,6 @@
       }).catch(err => console.log('Аудіо заблоковано браузером:', err));
     }
 
-    // Плавне вимкнення лісу (Fade-out) перед мовою
     function fadeOutForest(callback) {
       clearForestTimers();
       if (!isForestPlaying) {
@@ -323,6 +323,12 @@
         forest.play().then(() => {
           isForestPlaying = true;
           updateForestBadge(true);
+          
+          // Оновлюємо надпис, як тільки звук лісу пішов
+          if (!isPlayingDescription) {
+            instructionText.textContent = '🌲 Фоновий звук грає. Натисніть кнопку для опису.';
+          }
+
           const step = 0.02;
           forestFadeInterval = setInterval(() => {
             if (forest.volume + step < TARGET_FOREST_VOLUME) {
@@ -347,7 +353,6 @@
       audioUnlocked = true;
 
       if (!isPlayingDescription) {
-        // Плавне приглушення лісу перед стартом голосу
         fadeOutForest(() => {
           audio.play().then(() => {
             isPlayingDescription = true;
@@ -373,7 +378,6 @@
       }
     }
 
-    // Клік у будь-якій точці сторінки керує ЛІСОМ
     window.addEventListener('click', (e) => {
       if (e.target.closest('button') || e.target.closest('#seekBar')) return;
 
