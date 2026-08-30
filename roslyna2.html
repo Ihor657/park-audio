@@ -28,6 +28,7 @@
       border-radius: 50px;
       cursor: pointer;
       box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+      transition: transform 0.1s;
     }
 
     .play-btn:active {
@@ -46,8 +47,7 @@
 
   <h2>🌿 Прослухайте опис рослини</h2>
 
-  <button class="play-btn"
-          onclick="document.getElementById('audio').play()">
+  <button class="play-btn" id="playBtn">
     ▶️ Відтворити
   </button>
 
@@ -55,10 +55,50 @@
     Натисніть кнопку, щоб почати аудіо
   </div>
 
+  <!-- Основне аудіо (опис рослини) -->
   <audio id="audio">
     <source src="Audio1.mp3" type="audio/mpeg">
     Ваш браузер не підтримує аудіо.
   </audio>
+
+  <!-- Фоновий звук лісу -->
+  <audio id="forest" loop preload="auto">
+    <source src="Trees.aac" type="audio/aac">
+    <source src="Trees.aac" type="audio/mp4">
+  </audio>
+
+  <script>
+    const playBtn = document.getElementById('playBtn');
+    const audio = document.getElementById('audio');
+    const forest = document.getElementById('forest');
+
+    // Гучність фону (0.0 – 1.0)
+    forest.volume = 0.35;
+
+    // Спроба запустити фон одразу при відкритті сторінки
+    function startForest() {
+      forest.play().catch(() => {
+        // Браузер заблокував автовідтворення — запустимо при першому кліку
+      });
+    }
+
+    // Запускаємо фон
+    startForest();
+
+    // Кнопка відтворення опису
+    playBtn.addEventListener('click', () => {
+      // Якщо фон ще не грає — запускаємо його
+      if (forest.paused) {
+        forest.play().catch(() => {});
+      }
+
+      // Відтворюємо опис рослини
+      audio.play().catch(err => {
+        console.error('Помилка відтворення:', err);
+        alert('Не вдалося відтворити аудіо. Перевір файл Audio1.mp3');
+      });
+    });
+  </script>
 
 </body>
 </html>
