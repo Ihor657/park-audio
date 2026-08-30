@@ -25,42 +25,14 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 15px;
       margin-top: 20px;
-      flex-wrap: wrap;
-    }
-
-    .control-btn {
-      background-color: #e0f2e0;
-      color: #2e4e2e;
-      border: 2px solid #4CAF50;
-      padding: 15px;
-      font-size: 1.2em;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      width: 60px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .control-btn:hover {
-      background-color: #4CAF50;
-      color: white;
-      transform: translateY(-2px);
-    }
-
-    .control-btn:active {
-      transform: scale(0.95);
     }
 
     .play-btn {
       background-color: #4CAF50;
       color: white;
       border: none;
-      padding: 20px 30px;
+      padding: 20px 35px;
       font-size: 1.3em;
       border-radius: 50px;
       cursor: pointer;
@@ -69,7 +41,7 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      min-width: 200px;
+      min-width: 220px;
       justify-content: center;
     }
 
@@ -113,8 +85,8 @@
     .seek-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       background: #4CAF50;
       cursor: pointer;
@@ -127,8 +99,8 @@
     }
 
     .seek-slider::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       border: none;
       border-radius: 50%;
       background: #4CAF50;
@@ -165,9 +137,7 @@
     @media (max-width: 768px) {
       body { padding: 40px 15px; }
       h2.main-title { font-size: 1.5em; margin-bottom: 10px; }
-      .controls-container { gap: 10px; margin-top: 15px; }
-      .control-btn { width: 50px; height: 50px; font-size: 1em; padding: 12px; }
-      .play-btn { padding: 15px 20px; font-size: 1.1em; min-width: 160px; gap: 8px; }
+      .play-btn { padding: 15px 25px; font-size: 1.1em; min-width: 180px; gap: 8px; }
       .time-display { font-size: 1.1em; padding: 10px 20px; min-width: 150px; margin-top: 15px; }
       .instruction { margin-top: 20px; font-size: 0.95em; }
       .progress-container { width: 90%; }
@@ -176,9 +146,7 @@
     @media (max-width: 480px) {
       body { padding: 30px 10px; }
       h2.main-title { font-size: 1.3em; }
-      .controls-container { gap: 8px; }
-      .control-btn { width: 45px; height: 45px; font-size: 0.9em; padding: 10px; }
-      .play-btn { padding: 12px 15px; font-size: 1em; min-width: 140px; gap: 6px; }
+      .play-btn { padding: 12px 20px; font-size: 1em; min-width: 160px; gap: 6px; }
       .time-display { font-size: 1em; padding: 8px 15px; min-width: 140px; margin-top: 12px; }
       .instruction { font-size: 0.85em; margin-top: 15px; }
       .progress-container { width: 95%; }
@@ -191,14 +159,10 @@
   <h2 class="main-title">🌿 Прослухайте опис рослини</h2>
 
   <div class="controls-container">
-    <button class="control-btn" id="startBtn" title="Назад на 30 сек">⏮️</button>
-    
     <button class="play-btn" id="playBtn">
       <span id="btnIcon">▶️</span>
       <span id="btnText">Відтворити</span>
     </button>
-    
-    <button class="control-btn" id="endBtn" title="Вперед на 30 сек">⏭️</button>
   </div>
 
   <div class="progress-container">
@@ -223,9 +187,7 @@
   </audio>
 
   <script>
-    const startBtn = document.getElementById('startBtn');
     const playBtn = document.getElementById('playBtn');
-    const endBtn = document.getElementById('endBtn');
     const seekBar = document.getElementById('seekBar');
     const currentTimeEl = document.getElementById('currentTime');
     const durationEl = document.getElementById('duration');
@@ -241,6 +203,7 @@
     let isForestPlaying = false;
     let audioUnlocked = false;
     let isSeeking = false;
+    let userPausedForest = false; // Прапорець: чи поставив користувач ліс на паузу вручну
 
     forest.volume = 0.35;
 
@@ -251,7 +214,7 @@
       return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
 
-    // Оновлення таймера і повзунка під час програвання
+    // Оновлення прогресу
     audio.addEventListener('timeupdate', () => {
       if (!isSeeking && audio.duration) {
         currentTimeEl.textContent = formatTime(audio.currentTime);
@@ -264,7 +227,7 @@
       durationEl.textContent = formatTime(audio.duration);
     });
 
-    // Обробка взаємодії з повзунком
+    // Управління повзунком
     seekBar.addEventListener('input', (e) => {
       e.stopPropagation();
       isSeeking = true;
@@ -285,14 +248,14 @@
       isSeeking = false;
     });
 
-    // Зупиняємо спливання подій кліку з повзунка
     seekBar.addEventListener('click', (e) => e.stopPropagation());
     seekBar.addEventListener('touchstart', (e) => e.stopPropagation());
 
+    // Керування лісом
     function playForestSound() {
       forest.play().then(() => {
         isForestPlaying = true;
-      }).catch(err => console.log('Не вдалося запустити ліс:', err));
+      }).catch(err => console.log('Помилка відтворення лісу:', err));
     }
 
     function pauseForestSound() {
@@ -300,6 +263,7 @@
       isForestPlaying = false;
     }
 
+    // Керування кнопкою «Відтворити»
     function togglePlayback() {
       if (!audioUnlocked) {
         audioUnlocked = true;
@@ -309,7 +273,7 @@
       }
 
       if (!isPlayingDescription) {
-        pauseForestSound();
+        pauseForestSound(); // Під час опису ліс завжди мовчить
         audio.play().then(() => {
           isPlayingDescription = true;
           btnIcon.textContent = '⏸️';
@@ -323,29 +287,41 @@
         btnIcon.textContent = '▶️';
         btnText.textContent = 'Продовжити';
         playBtn.classList.remove('playing');
-        instructionText.textContent = '⏸️ Аудіо на паузі. Грає фоновий звук лісу.';
-        playForestSound();
+
+        // Вмикаємо ліс, ТІЛЬКИ якщо користувач НЕ ставив його на паузу вручну
+        if (!userPausedForest) {
+          playForestSound();
+          instructionText.textContent = '⏸️ Опис на паузі. Грає фоновий звук лісу.';
+        } else {
+          instructionText.textContent = '⏸️ Звук повністю на паузі. Торкніться екрана для відновлення.';
+        }
       }
     }
 
+    // Дотик до порожнього екрана
     function handleScreenTouch(e) {
       if (e.target.closest('button') || e.target.closest('#seekBar')) return;
 
       if (!audioUnlocked) {
         audioUnlocked = true;
         playForestSound();
-        instructionText.textContent = '🌲 Фоновий звук грає. Торкніться кнопкою для опису.';
+        instructionText.textContent = '🌲 Фоновий звук грає. Натисніть "Відтворити" для опису.';
         return;
       }
 
+      // Якщо зараз грає опис — ставимо його на паузу
       if (isPlayingDescription) {
         togglePlayback();
       } 
+      // Якщо грає звук лісу — зупиняємо його і запам'ятовуємо вибір користувача
       else if (isForestPlaying) {
         pauseForestSound();
-        instructionText.textContent = '⏸️ Звук на паузі. Торкніться екрана для продовження.';
+        userPausedForest = true;
+        instructionText.textContent = '⏸️ Всі звуки на паузі. Торкніться екрана для відновлення.';
       } 
+      // Якщо нічого не грає — відновлюємо звук лісу
       else {
+        userPausedForest = false;
         playForestSound();
         instructionText.textContent = '🌲 Фоновий звук грає. Натисніть "Відтворити" для опису.';
       }
@@ -358,33 +334,19 @@
       togglePlayback();
     });
 
-    startBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (!audioUnlocked) return;
-      
-      audio.currentTime = Math.max(0, audio.currentTime - 30);
-      currentTimeEl.textContent = formatTime(audio.currentTime);
-      instructionText.textContent = '⏪ Перемотано на 30 секунд назад';
-    });
-
-    endBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (!audioUnlocked) return;
-      
-      if (audio.duration) {
-        audio.currentTime = Math.min(audio.duration, audio.currentTime + 30);
-        currentTimeEl.textContent = formatTime(audio.currentTime);
-        instructionText.textContent = '⏩ Перемотано на 30 секунд вперед';
-      }
-    });
-
+    // Завершення аудіо опису
     audio.addEventListener('ended', () => {
       isPlayingDescription = false;
       btnIcon.textContent = '▶️';
       btnText.textContent = 'Відтворити';
       playBtn.classList.remove('playing');
-      instructionText.textContent = '✅ Відтворення завершено. Грає фоновий звук лісу.';
-      playForestSound();
+
+      if (!userPausedForest) {
+        playForestSound();
+        instructionText.textContent = '✅ Відтворення завершено. Грає фоновий звук лісу.';
+      } else {
+        instructionText.textContent = '✅ Відтворення завершено.';
+      }
     });
   </script>
 
