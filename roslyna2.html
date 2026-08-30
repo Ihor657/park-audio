@@ -56,7 +56,7 @@
       transform: scale(0.96);
     }
 
-    /* Приємний теплий бурштиновий колір для паузи замість червоного */
+    /* Приємний бурштиновий колір для паузи */
     .play-btn.playing {
       background-color: #d97706;
       box-shadow: 0 5px 12px rgba(217, 119, 6, 0.3);
@@ -178,7 +178,7 @@
   </div>
 
   <div class="instruction" id="instructionText">
-    🌲 Торкніться будь-де для активації звуку
+    🌲 Торкніться будь-де для активації фонового звуку
   </div>
 
   <audio id="audio" preload="metadata">
@@ -209,7 +209,9 @@
     let isSeeking = false;
     let userPausedForest = false;
 
-    forest.volume = 0.35;
+    let forestDelayTimeout = null;
+    let forestFadeInterval = null;
+    const TARGET_FOREST_VOLUME = 0.35;
 
     function formatTime(seconds) {
       if (isNaN(seconds) || seconds < 0) return "0:00";
@@ -251,27 +253,63 @@
     seekBar.addEventListener('click', (e) => e.stopPropagation());
     seekBar.addEventListener('touchstart', (e) => e.stopPropagation());
 
+    // Зупиняє всі таймери плавного згасання/появи лісу
+    function clearForestTimers() {
+      if (forestDelayTimeout) {
+        clearTimeout(forestDelayTimeout);
+        forestDelayTimeout = null;
+      }
+      if (forestFadeInterval) {
+        clearInterval(forestFadeInterval);
+        forestFadeInterval = null;
+      }
+    }
+
+    // Миттєвий запуск лісу з повною гучністю (для звичайних точок)
     function playForestSound() {
+      clearForestTimers();
+      forest.volume = TARGET_FOREST_VOLUME;
       forest.play().then(() => {
         isForestPlaying = true;
       }).catch(err => console.log('Помилка відтворення лісу:', err));
     }
 
+    // Запуск лісу із затримкою 2 секунди та плавним зростанням гучності
+    function playForestSoundWithFade() {
+      clearForestTimers();
+      forest.volume = 0;
+
+      forestDelayTimeout = setTimeout(() => {
+        forest.play().then(() => {
+          isForestPlaying = true;
+          const step = 0.02;
+          forestFadeInterval = setInterval(() => {
+            if (forest.volume + step < TARGET_FOREST_VOLUME) {
+              forest.volume += step;
+            } else {
+              forest.volume = TARGET_FOREST_VOLUME;
+              clearInterval(forestFadeInterval);
+              forestFadeInterval = null;
+            }
+          }, 100);
+        }).catch(err => console.log('Помилка відтворення лісу з наростанням:', err));
+      }, 2000); // 2 секунди затримки
+    }
+
     function pauseForestSound() {
+      clearForestTimers();
       forest.pause();
       isForestPlaying = false;
     }
 
+    // Керування кнопкою «Відтворити/Пауза» (Тільки для описів)
     function togglePlayback() {
       if (!audioUnlocked) {
         audioUnlocked = true;
-        playForestSound();
-        instructionText.textContent = '🌲 Фоновий звук грає. Натисніть "Відтворити" для опису.';
-        return;
       }
 
       if (!isPlayingDescription) {
-        pauseForestSound();
+        pauseForestSound(); // Зупиняємо ліс під час зачитування опису
         audio.play().then(() => {
           isPlayingDescription = true;
           btnIcon.textContent = '⏸️';
@@ -286,17 +324,19 @@
         btnText.textContent = 'Продовжити';
         playBtn.classList.remove('playing');
 
+        // Якщо користувач самостійно не вимикав ліс, запускаємо його через 2 сек з плавною гучністю
         if (!userPausedForest) {
-          playForestSound();
-          instructionText.textContent = '⏸️ Опис на паузі. Грає фоновий звук лісу.';
+          playForestSoundWithFade();
+          instructionText.textContent = '⏸️ Опис на паузі. Звук лісу відновиться через 2 секунди...';
         } else {
-          instructionText.textContent = '⏸️ Звук на паузі. Торкніться екрана для відновлення.';
+          instructionText.textContent = '⏸️ Опис на паузі.';
         }
       }
     }
 
-    // Реакція на клік/дотик по БУДЬ-ЯКІЙ частині сторінки
+    // Дотик по БУДЬ-ЯКІЙ частині сторінки — КЕРУЄ ТІЛЬКИ ЗВУКОМ ЛІСУ
     function handleGlobalTouch(e) {
+      // Ігноруємо кліки по кнопках та повзунку
       if (e.target.closest('button') || e.target.closest('#seekBar')) return;
 
       if (!audioUnlocked) {
@@ -307,15 +347,14 @@
         return;
       }
 
-      if (isPlayingDescription) {
-        togglePlayback();
-      } 
-      else if (isForestPlaying) {
+      // Якщо зараз грає ліс — ставимо його на паузу
+      if (isForestPlaying) {
         pauseForestSound();
         userPausedForest = true;
         instructionText.textContent = '⏸️ Звук лісу на паузі. Торкніться екрана для відновлення.';
       } 
-      else {
+      // Якщо ліс на паузі (і зараз НЕ грає опис) — вмикаємо його
+      else if (!isPlayingDescription) {
         userPausedForest = false;
         playForestSound();
         instructionText.textContent = '🌲 Фоновий звук грає. Натисніть "Відтворити" для опису.';
@@ -329,6 +368,7 @@
       togglePlayback();
     });
 
+    // Завершення аудіо опису
     audio.addEventListener('ended', () => {
       isPlayingDescription = false;
       btnIcon.textContent = '▶️';
@@ -336,8 +376,8 @@
       playBtn.classList.remove('playing');
 
       if (!userPausedForest) {
-        playForestSound();
-        instructionText.textContent = '✅ Відтворення завершено. Грає фоновий звук лісу.';
+        playForestSoundWithFade();
+        instructionText.textContent = '✅ Відтворення завершено. Звук лісу повернеться через 2 секунди...';
       } else {
         instructionText.textContent = '✅ Відтворення завершено.';
       }
