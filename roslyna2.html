@@ -15,39 +15,13 @@
       margin: 0;
     }
 
-    /* Стартовий екран для розблокування звуку */
-    #startOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(46, 78, 46, 0.95);
-      color: white;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      cursor: pointer;
-      transition: opacity 0.5s ease;
-    }
-
-    #startOverlay h2 {
-      font-size: 2em;
-      margin-bottom: 20px;
-      color: white;
-    }
-
-    #startOverlay p {
-      font-size: 1.2em;
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 0.6; }
-      50% { opacity: 1; }
-      100% { opacity: 0.6; }
+    /* Прихована кнопка для розблокування аудіо */
+    #hiddenUnlockBtn {
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+      opacity: 0;
+      pointer-events: none;
     }
 
     h2.main-title {
@@ -55,7 +29,6 @@
       margin-bottom: 15px;
     }
 
-    /* Контейнер для кнопок управління */
     .controls-container {
       display: flex;
       justify-content: center;
@@ -65,7 +38,6 @@
       flex-wrap: wrap;
     }
 
-    /* Бічні кнопки (початок / кінець) */
     .control-btn {
       background-color: #e0f2e0;
       color: #2e4e2e;
@@ -92,7 +64,6 @@
       transform: scale(0.95);
     }
 
-    /* Головна кнопка відтворення */
     .play-btn {
       background-color: #4CAF50;
       color: white;
@@ -139,15 +110,11 @@
 
 <body>
 
-  <!-- Стартовий екран для розблокування аудіо в браузері -->
-  <div id="startOverlay">
-    <h2>🌿 Ласкаво просимо</h2>
-    <p>▶️ Натисніть будь-де на екрані, щоб увімкнути звук лісу</p>
-  </div>
+  <!-- Прихована кнопка для автоматичного розблокування звуку -->
+  <button id="hiddenUnlockBtn"></button>
 
-  <h2 class="main-title">Прослухайте опис рослини</h2>
+  <h2 class="main-title">🌿 Прослухайте опис рослини</h2>
 
-  <!-- Блок з трьома кнопками -->
   <div class="controls-container">
     <button class="control-btn" id="startBtn" title="Повернутися на початок">⏮️</button>
     
@@ -160,22 +127,20 @@
   </div>
 
   <div class="instruction" id="instructionText">
-    Спочатку натисніть на затемнений екран, щоб активувати звук
+    Завантаження звуку лісу...
   </div>
 
-  <!-- Основне аудіо (мова) -->
   <audio id="audio" preload="auto">
     <source src="Audio1.mp3" type="audio/mpeg">
   </audio>
 
-  <!-- Фоновий звук лісу -->
   <audio id="forest" loop preload="auto">
     <source src="Trees.aac" type="audio/aac">
     <source src="Trees.aac" type="audio/mp4">
   </audio>
 
   <script>
-    const startOverlay = document.getElementById('startOverlay');
+    const hiddenUnlockBtn = document.getElementById('hiddenUnlockBtn');
     const startBtn = document.getElementById('startBtn');
     const playBtn = document.getElementById('playBtn');
     const endBtn = document.getElementById('endBtn');
@@ -192,33 +157,45 @@
 
     forest.volume = 0.35;
 
-    // 1. РОЗБЛОКУВАННЯ ЗВУКУ
-    startOverlay.addEventListener('click', () => {
-      if (!audioUnlocked) {
-        forest.play().then(() => {
-          audioUnlocked = true;
-          startOverlay.style.opacity = '0';
-          setTimeout(() => {
-            startOverlay.style.display = 'none';
-          }, 500);
-          instructionText.textContent = '🌲 Звук лісу відтворено. Натисніть кнопку для опису.';
-          console.log('✅ Звук успішно розблоковано та запущено');
-        }).catch(err => {
-          console.error('❌ Не вдалося запустити звук:', err);
-          instructionText.textContent = '⚠️ Браузер заблокував звук. Спробуйте оновити сторінку.';
-        });
-      }
+    // 1. АВТОМАТИЧНЕ РОЗБЛОКУВАННЯ ЗВУКУ ПРИ ЗАВАНТАЖЕННІ
+    window.addEventListener('DOMContentLoaded', () => {
+      // Програмно "клікаємо" приховану кнопку для розблокування аудіо
+      hiddenUnlockBtn.click();
+      
+      // Спроба запустити звук лісу
+      forest.play().then(() => {
+        audioUnlocked = true;
+        instructionText.textContent = '🌲 Звук лісу грає. Натисніть кнопку для опису.';
+        console.log('✅ Звук лісу автоматично запущено');
+      }).catch(err => {
+        console.log('⚠️ Автоматичний запуск заблоковано, чекаємо на взаємодію...');
+        instructionText.textContent = '🌲 Рухайте мишею або торкніться екрану для активації звуку';
+        
+        // FALLBACK: Запускаємо при першій взаємодії користувача
+        const unlockOnInteraction = () => {
+          if (!audioUnlocked) {
+            forest.play().then(() => {
+              audioUnlocked = true;
+              instructionText.textContent = '🌲 Звук лісу грає. Натисніть кнопку для опису.';
+              console.log('✅ Звук розблоковано при взаємодії');
+            });
+          }
+        };
+        
+        document.addEventListener('mousemove', unlockOnInteraction, { once: true });
+        document.addEventListener('touchstart', unlockOnInteraction, { once: true });
+        document.addEventListener('click', unlockOnInteraction, { once: true });
+      });
     });
 
     // 2. ГОЛОВНА КНОПКА (ПАУЗА / ПРОДОВЖИТИ)
     playBtn.addEventListener('click', () => {
       if (!audioUnlocked) {
-        instructionText.textContent = '⚠️ Спочатку натисніть на затемнений екран, щоб дозволити звук!';
+        instructionText.textContent = '⚠️ Рухайте мишею або торкніться екрану для активації звуку!';
         return;
       }
 
       if (!isPlaying) {
-        // ЗАПУСК АБО ПРОДОВЖЕННЯ
         forest.pause();
         audio.play().then(() => {
           isPlaying = true;
@@ -227,11 +204,10 @@
           playBtn.classList.add('playing');
           instructionText.textContent = '🔊 Йде відтворення опису рослини...';
         }).catch(err => {
-          console.error('❌ Помилка відтворення аудіо:', err);
-          alert('Не вдалося відтворити аудіо. Перевірте файл Audio1.mp3');
+          console.error('❌ Помилка відтворення:', err);
+          alert('Не вдалося відтворити аудіо');
         });
       } else {
-        // ПАУЗА (без скидання часу!)
         audio.pause();
         isPlaying = false;
         btnIcon.textContent = '▶️';
@@ -246,7 +222,7 @@
     startBtn.addEventListener('click', () => {
       if (!audioUnlocked) return;
       
-      audio.currentTime = 0; // Скидаємо на початок
+      audio.currentTime = 0;
       audio.play().then(() => {
         isPlaying = true;
         btnIcon.textContent = '⏸️';
@@ -261,26 +237,22 @@
     endBtn.addEventListener('click', () => {
       if (!audioUnlocked) return;
       
-      audio.pause(); // Зупиняємо мову
-      
-      // Імітуємо природне завершення аудіо
+      audio.pause();
       isPlaying = false;
       btnIcon.textContent = '▶️';
       btnText.textContent = 'Відтворити';
       playBtn.classList.remove('playing');
       instructionText.textContent = '✅ Відтворення завершено. Грає фоновий звук лісу.';
-      
-      forest.play(); // Повертаємо звук лісу
+      forest.play();
     });
 
-    // 5. КОЛИ МОВА ЗАКІНЧУЄТЬСЯ САМА
+    // 5. КОЛИ МОВА ЗАКІНЧУЄТЬСЯ
     audio.addEventListener('ended', () => {
       isPlaying = false;
       btnIcon.textContent = '▶️';
       btnText.textContent = 'Відтворити';
       playBtn.classList.remove('playing');
       instructionText.textContent = '✅ Відтворення завершено. Грає фоновий звук лісу.';
-      
       forest.play();
     });
   </script>
