@@ -55,12 +55,50 @@
       margin-bottom: 15px;
     }
 
+    /* Контейнер для кнопок управління */
+    .controls-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    /* Бічні кнопки (початок / кінець) */
+    .control-btn {
+      background-color: #e0f2e0;
+      color: #2e4e2e;
+      border: 2px solid #4CAF50;
+      padding: 15px;
+      font-size: 1.2em;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .control-btn:hover {
+      background-color: #4CAF50;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .control-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Головна кнопка відтворення */
     .play-btn {
       background-color: #4CAF50;
       color: white;
       border: none;
-      padding: 20px 40px;
-      font-size: 1.5em;
+      padding: 20px 30px;
+      font-size: 1.3em;
       border-radius: 50px;
       cursor: pointer;
       box-shadow: 0 5px 10px rgba(0,0,0,0.2);
@@ -68,6 +106,8 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
+      min-width: 200px;
+      justify-content: center;
     }
 
     .play-btn:hover {
@@ -88,7 +128,7 @@
     }
 
     .instruction {
-      margin-top: 20px;
+      margin-top: 25px;
       font-size: 1.1em;
       font-style: italic;
       color: #555;
@@ -107,13 +147,20 @@
 
   <h2 class="main-title">Прослухайте опис рослини</h2>
 
-  <button class="play-btn" id="playBtn">
-    <span id="btnIcon">▶️</span>
-    <span id="btnText">Відтворити опис</span>
-  </button>
+  <!-- Блок з трьома кнопками -->
+  <div class="controls-container">
+    <button class="control-btn" id="startBtn" title="Повернутися на початок">⏮️</button>
+    
+    <button class="play-btn" id="playBtn">
+      <span id="btnIcon">▶️</span>
+      <span id="btnText">Відтворити</span>
+    </button>
+    
+    <button class="control-btn" id="endBtn" title="Перейти в кінець">⏭️</button>
+  </div>
 
   <div class="instruction" id="instructionText">
-    Спочатку натисніть на екран вище, щоб активувати звук
+    Спочатку натисніть на затемнений екран, щоб активувати звук
   </div>
 
   <!-- Основне аудіо (мова) -->
@@ -129,7 +176,10 @@
 
   <script>
     const startOverlay = document.getElementById('startOverlay');
+    const startBtn = document.getElementById('startBtn');
     const playBtn = document.getElementById('playBtn');
+    const endBtn = document.getElementById('endBtn');
+    
     const btnIcon = document.getElementById('btnIcon');
     const btnText = document.getElementById('btnText');
     const instructionText = document.getElementById('instructionText');
@@ -142,7 +192,98 @@
 
     forest.volume = 0.35;
 
-    // 1. РОЗБЛОКУВАННЯ ЗВУКУ: Працює при першому кліці по стартовому екрану
+    // 1. РОЗБЛОКУВАННЯ ЗВУКУ
     startOverlay.addEventListener('click', () => {
       if (!audioUnlocked) {
-        forest
+        forest.play().then(() => {
+          audioUnlocked = true;
+          startOverlay.style.opacity = '0';
+          setTimeout(() => {
+            startOverlay.style.display = 'none';
+          }, 500);
+          instructionText.textContent = '🌲 Звук лісу відтворено. Натисніть кнопку для опису.';
+          console.log('✅ Звук успішно розблоковано та запущено');
+        }).catch(err => {
+          console.error('❌ Не вдалося запустити звук:', err);
+          instructionText.textContent = '⚠️ Браузер заблокував звук. Спробуйте оновити сторінку.';
+        });
+      }
+    });
+
+    // 2. ГОЛОВНА КНОПКА (ПАУЗА / ПРОДОВЖИТИ)
+    playBtn.addEventListener('click', () => {
+      if (!audioUnlocked) {
+        instructionText.textContent = '⚠️ Спочатку натисніть на затемнений екран, щоб дозволити звук!';
+        return;
+      }
+
+      if (!isPlaying) {
+        // ЗАПУСК АБО ПРОДОВЖЕННЯ
+        forest.pause();
+        audio.play().then(() => {
+          isPlaying = true;
+          btnIcon.textContent = '⏸️';
+          btnText.textContent = 'Пауза';
+          playBtn.classList.add('playing');
+          instructionText.textContent = '🔊 Йде відтворення опису рослини...';
+        }).catch(err => {
+          console.error('❌ Помилка відтворення аудіо:', err);
+          alert('Не вдалося відтворити аудіо. Перевірте файл Audio1.mp3');
+        });
+      } else {
+        // ПАУЗА (без скидання часу!)
+        audio.pause();
+        isPlaying = false;
+        btnIcon.textContent = '▶️';
+        btnText.textContent = 'Продовжити';
+        playBtn.classList.remove('playing');
+        instructionText.textContent = '⏸️ Аудіо на паузі. Грає фоновий звук лісу.';
+        forest.play();
+      }
+    });
+
+    // 3. КНОПКА "НА ПОЧАТОК"
+    startBtn.addEventListener('click', () => {
+      if (!audioUnlocked) return;
+      
+      audio.currentTime = 0; // Скидаємо на початок
+      audio.play().then(() => {
+        isPlaying = true;
+        btnIcon.textContent = '⏸️';
+        btnText.textContent = 'Пауза';
+        playBtn.classList.add('playing');
+        forest.pause();
+        instructionText.textContent = '🔊 Відтворення з початку...';
+      });
+    });
+
+    // 4. КНОПКА "В КІНЕЦЬ"
+    endBtn.addEventListener('click', () => {
+      if (!audioUnlocked) return;
+      
+      audio.pause(); // Зупиняємо мову
+      
+      // Імітуємо природне завершення аудіо
+      isPlaying = false;
+      btnIcon.textContent = '▶️';
+      btnText.textContent = 'Відтворити';
+      playBtn.classList.remove('playing');
+      instructionText.textContent = '✅ Відтворення завершено. Грає фоновий звук лісу.';
+      
+      forest.play(); // Повертаємо звук лісу
+    });
+
+    // 5. КОЛИ МОВА ЗАКІНЧУЄТЬСЯ САМА
+    audio.addEventListener('ended', () => {
+      isPlaying = false;
+      btnIcon.textContent = '▶️';
+      btnText.textContent = 'Відтворити';
+      playBtn.classList.remove('playing');
+      instructionText.textContent = '✅ Відтворення завершено. Грає фоновий звук лісу.';
+      
+      forest.play();
+    });
+  </script>
+
+</body>
+</html>
