@@ -6,60 +6,108 @@
   <title>Опис рослини</title>
 
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f2fff2;
-      text-align: center;
-      padding: 60px 20px;
-      color: #2e4e2e;
-      margin: 0;
-      user-select: none;
-      min-height: 100vh;
+    * {
       box-sizing: border-box;
     }
 
-    h2.main-title {
-      font-size: 2em;
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+      color: #1b4332;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Картка-контейнер з сучасним розмиттям */
+    .card {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 24px;
+      padding: 35px 25px;
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+      box-shadow: 0 15px 35px rgba(27, 67, 50, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      position: relative;
+    }
+
+    /* Індикатор стану фонового звуку */
+    .forest-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(45, 106, 79, 0.1);
+      color: #2d6a4f;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: 600;
       margin-bottom: 15px;
+      transition: all 0.3s ease;
+      opacity: 0.5;
+    }
+
+    .forest-badge.active {
+      opacity: 1;
+      background: rgba(45, 106, 79, 0.2);
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+
+    h2.main-title {
+      font-size: 1.6em;
+      margin: 0 0 20px 0;
+      color: #1b4332;
     }
 
     .controls-container {
       display: flex;
       justify-content: center;
-      align-items: center;
-      margin-top: 20px;
+      margin-top: 10px;
     }
 
     .play-btn {
-      background-color: #4CAF50;
+      background-color: #2d6a4f;
       color: white;
       border: none;
-      padding: 20px 35px;
-      font-size: 1.3em;
+      padding: 16px 32px;
+      font-size: 1.2em;
+      font-weight: 600;
       border-radius: 50px;
       cursor: pointer;
-      box-shadow: 0 5px 12px rgba(46, 78, 46, 0.2);
+      box-shadow: 0 6px 16px rgba(45, 106, 79, 0.25);
       transition: all 0.25s ease;
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      min-width: 220px;
+      min-width: 200px;
       justify-content: center;
     }
 
     .play-btn:hover {
-      background-color: #45a049;
+      background-color: #1b4332;
       transform: translateY(-2px);
     }
 
     .play-btn:active {
-      transform: scale(0.96);
+      transform: scale(0.97);
     }
 
-    /* Приємний бурштиновий колір для паузи */
     .play-btn.playing {
       background-color: #d97706;
-      box-shadow: 0 5px 12px rgba(217, 119, 6, 0.3);
+      box-shadow: 0 6px 16px rgba(217, 119, 6, 0.3);
     }
 
     .play-btn.playing:hover {
@@ -67,11 +115,8 @@
     }
 
     .progress-container {
-      width: 80%;
-      max-width: 400px;
-      margin: 25px auto 10px auto;
-      display: flex;
-      align-items: center;
+      width: 100%;
+      margin: 25px 0 15px 0;
     }
 
     .seek-slider {
@@ -79,22 +124,21 @@
       appearance: none;
       width: 100%;
       height: 8px;
-      border-radius: 5px;
-      background: #c8e6c9;
+      border-radius: 4px;
+      background: #b7e4c7;
       outline: none;
       cursor: pointer;
-      transition: background 0.15s ease-in-out;
     }
 
     .seek-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
-      background: #4CAF50;
+      background: #2d6a4f;
       cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       transition: transform 0.1s ease;
     }
 
@@ -102,83 +146,53 @@
       transform: scale(1.2);
     }
 
-    .seek-slider::-moz-range-thumb {
-      width: 22px;
-      height: 22px;
-      border: none;
-      border-radius: 50%;
-      background: #4CAF50;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-
     .time-display {
-      margin-top: 10px;
-      font-size: 1.3em;
-      font-weight: bold;
-      color: white;
-      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-      padding: 12px 25px;
-      border-radius: 25px;
+      font-size: 1.1em;
+      font-weight: 700;
+      color: #2d6a4f;
+      background: rgba(183, 228, 199, 0.4);
+      padding: 8px 20px;
+      border-radius: 20px;
       display: inline-block;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-      min-width: 180px;
-    }
-
-    .time-display span {
-      color: #ffff99;
-      font-family: 'Courier New', monospace;
     }
 
     .instruction {
       margin-top: 20px;
-      font-size: 1.1em;
-      font-style: italic;
-      color: #4a6b4a;
-      min-height: 1.5em;
-    }
-
-    @media (max-width: 768px) {
-      body { padding: 40px 15px; }
-      h2.main-title { font-size: 1.5em; margin-bottom: 10px; }
-      .play-btn { padding: 15px 25px; font-size: 1.1em; min-width: 180px; gap: 8px; }
-      .time-display { font-size: 1.1em; padding: 10px 20px; min-width: 150px; margin-top: 15px; }
-      .instruction { margin-top: 20px; font-size: 0.95em; }
-      .progress-container { width: 90%; }
-    }
-
-    @media (max-width: 480px) {
-      body { padding: 30px 10px; }
-      h2.main-title { font-size: 1.3em; }
-      .play-btn { padding: 12px 20px; font-size: 1em; min-width: 160px; gap: 6px; }
-      .time-display { font-size: 1em; padding: 8px 15px; min-width: 140px; margin-top: 12px; }
-      .instruction { font-size: 0.85em; margin-top: 15px; }
-      .progress-container { width: 95%; }
+      font-size: 0.95em;
+      color: #40916c;
+      min-height: 2.4em;
+      line-height: 1.4;
     }
   </style>
 </head>
 
 <body>
 
-  <h2 class="main-title">🌿 Прослухайте опис рослини</h2>
+  <div class="card">
+    <div class="forest-badge" id="forestBadge">
+      <span>🌲</span> <span id="forestBadgeText">Фон: вимкнено</span>
+    </div>
 
-  <div class="controls-container">
-    <button class="play-btn" id="playBtn">
-      <span id="btnIcon">▶️</span>
-      <span id="btnText">Відтворити</span>
-    </button>
-  </div>
+    <h2 class="main-title">Прослухайте опис рослини</h2>
 
-  <div class="progress-container">
-    <input type="range" id="seekBar" class="seek-slider" value="0" min="0" max="100" step="0.1">
-  </div>
+    <div class="controls-container">
+      <button class="play-btn" id="playBtn">
+        <span id="btnIcon">▶️</span>
+        <span id="btnText">Відтворити</span>
+      </button>
+    </div>
 
-  <div class="time-display" id="timeDisplay">
-    <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
-  </div>
+    <div class="progress-container">
+      <input type="range" id="seekBar" class="seek-slider" value="0" min="0" max="100" step="0.1">
+    </div>
 
-  <div class="instruction" id="instructionText">
-    🌲 Торкніться будь-де для активації фонового звуку
+    <div class="time-display" id="timeDisplay">
+      <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+    </div>
+
+    <div class="instruction" id="instructionText">
+      Торкніться екрана в будь-якому місці, щоб увімкнути звук лісу
+    </div>
   </div>
 
   <audio id="audio" preload="metadata">
@@ -195,11 +209,12 @@
     const seekBar = document.getElementById('seekBar');
     const currentTimeEl = document.getElementById('currentTime');
     const durationEl = document.getElementById('duration');
-    
     const btnIcon = document.getElementById('btnIcon');
     const btnText = document.getElementById('btnText');
     const instructionText = document.getElementById('instructionText');
-    
+    const forestBadge = document.getElementById('forestBadge');
+    const forestBadgeText = document.getElementById('forestBadgeText');
+
     const audio = document.getElementById('audio');
     const forest = document.getElementById('forest');
 
@@ -220,11 +235,20 @@
       return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
 
+    function updateForestBadge(active) {
+      if (active) {
+        forestBadge.classList.add('active');
+        forestBadgeText.textContent = 'Фон: Ліс грає';
+      } else {
+        forestBadge.classList.remove('active');
+        forestBadgeText.textContent = 'Фон: Пауза';
+      }
+    }
+
     audio.addEventListener('timeupdate', () => {
       if (!isSeeking && audio.duration) {
         currentTimeEl.textContent = formatTime(audio.currentTime);
-        const progressPercentage = (audio.currentTime / audio.duration) * 100;
-        seekBar.value = progressPercentage;
+        seekBar.value = (audio.currentTime / audio.duration) * 100;
       }
     });
 
@@ -236,45 +260,61 @@
       e.stopPropagation();
       isSeeking = true;
       if (audio.duration) {
-        const seekTime = (seekBar.value / 100) * audio.duration;
-        currentTimeEl.textContent = formatTime(seekTime);
+        currentTimeEl.textContent = formatTime((seekBar.value / 100) * audio.duration);
       }
     });
 
     seekBar.addEventListener('change', (e) => {
       e.stopPropagation();
-      if (!audioUnlocked) audioUnlocked = true;
       if (audio.duration) {
         audio.currentTime = (seekBar.value / 100) * audio.duration;
       }
       isSeeking = false;
     });
 
-    seekBar.addEventListener('click', (e) => e.stopPropagation());
-    seekBar.addEventListener('touchstart', (e) => e.stopPropagation());
+    ['click', 'touchstart'].forEach(evt => {
+      seekBar.addEventListener(evt, e => e.stopPropagation());
+    });
 
-    // Зупиняє всі таймери плавного згасання/появи лісу
     function clearForestTimers() {
-      if (forestDelayTimeout) {
-        clearTimeout(forestDelayTimeout);
-        forestDelayTimeout = null;
-      }
-      if (forestFadeInterval) {
-        clearInterval(forestFadeInterval);
-        forestFadeInterval = null;
-      }
+      if (forestDelayTimeout) clearTimeout(forestDelayTimeout);
+      if (forestFadeInterval) clearInterval(forestFadeInterval);
+      forestDelayTimeout = null;
+      forestFadeInterval = null;
     }
 
-    // Миттєвий запуск лісу з повною гучністю (для звичайних точок)
     function playForestSound() {
       clearForestTimers();
       forest.volume = TARGET_FOREST_VOLUME;
       forest.play().then(() => {
         isForestPlaying = true;
-      }).catch(err => console.log('Помилка відтворення лісу:', err));
+        updateForestBadge(true);
+      }).catch(err => console.log('Аудіо заблоковано браузером:', err));
     }
 
-    // Запуск лісу із затримкою 2 секунди та плавним зростанням гучності
+    // Плавне вимкнення лісу (Fade-out) перед мовою
+    function fadeOutForest(callback) {
+      clearForestTimers();
+      if (!isForestPlaying) {
+        if (callback) callback();
+        return;
+      }
+      
+      const step = 0.05;
+      forestFadeInterval = setInterval(() => {
+        if (forest.volume - step > 0) {
+          forest.volume -= step;
+        } else {
+          forest.volume = 0;
+          forest.pause();
+          isForestPlaying = false;
+          updateForestBadge(false);
+          clearInterval(forestFadeInterval);
+          if (callback) callback();
+        }
+      }, 50);
+    }
+
     function playForestSoundWithFade() {
       clearForestTimers();
       forest.volume = 0;
@@ -282,6 +322,7 @@
       forestDelayTimeout = setTimeout(() => {
         forest.play().then(() => {
           isForestPlaying = true;
+          updateForestBadge(true);
           const step = 0.02;
           forestFadeInterval = setInterval(() => {
             if (forest.volume + step < TARGET_FOREST_VOLUME) {
@@ -289,34 +330,33 @@
             } else {
               forest.volume = TARGET_FOREST_VOLUME;
               clearInterval(forestFadeInterval);
-              forestFadeInterval = null;
             }
           }, 100);
-        }).catch(err => console.log('Помилка відтворення лісу з наростанням:', err));
-      }, 2000); // 2 секунди затримки
+        }).catch(err => console.log('Помилка відтворення:', err));
+      }, 2000);
     }
 
     function pauseForestSound() {
       clearForestTimers();
       forest.pause();
       isForestPlaying = false;
+      updateForestBadge(false);
     }
 
-    // Керування кнопкою «Відтворити/Пауза» (Тільки для описів)
     function togglePlayback() {
-      if (!audioUnlocked) {
-        audioUnlocked = true;
-      }
+      audioUnlocked = true;
 
       if (!isPlayingDescription) {
-        pauseForestSound(); // Зупиняємо ліс під час зачитування опису
-        audio.play().then(() => {
-          isPlayingDescription = true;
-          btnIcon.textContent = '⏸️';
-          btnText.textContent = 'Пауза';
-          playBtn.classList.add('playing');
-          instructionText.textContent = '🔊 Йде відтворення опису рослини...';
-        }).catch(err => console.error('Помилка відтворення:', err));
+        // Плавне приглушення лісу перед стартом голосу
+        fadeOutForest(() => {
+          audio.play().then(() => {
+            isPlayingDescription = true;
+            btnIcon.textContent = '⏸️';
+            btnText.textContent = 'Пауза';
+            playBtn.classList.add('playing');
+            instructionText.textContent = '🔊 Йде відтворення опису...';
+          }).catch(err => console.error(err));
+        });
       } else {
         audio.pause();
         isPlayingDescription = false;
@@ -324,51 +364,43 @@
         btnText.textContent = 'Продовжити';
         playBtn.classList.remove('playing');
 
-        // Якщо користувач самостійно не вимикав ліс, запускаємо його через 2 сек з плавною гучністю
         if (!userPausedForest) {
           playForestSoundWithFade();
-          instructionText.textContent = '⏸️ Опис на паузі. Звук лісу відновиться через 2 секунди...';
+          instructionText.textContent = '⏸️ Опис на паузі. Звук лісу відновиться через 2 сек...';
         } else {
           instructionText.textContent = '⏸️ Опис на паузі.';
         }
       }
     }
 
-    // Дотик по БУДЬ-ЯКІЙ частині сторінки — КЕРУЄ ТІЛЬКИ ЗВУКОМ ЛІСУ
-    function handleGlobalTouch(e) {
-      // Ігноруємо кліки по кнопках та повзунку
+    // Клік у будь-якій точці сторінки керує ЛІСОМ
+    window.addEventListener('click', (e) => {
       if (e.target.closest('button') || e.target.closest('#seekBar')) return;
 
       if (!audioUnlocked) {
         audioUnlocked = true;
         userPausedForest = false;
         playForestSound();
-        instructionText.textContent = '🌲 Фоновий звук грає. Натисніть "Відтворити" для опису.';
+        instructionText.textContent = '🌲 Фоновий звук грає. Натисніть кнопку для опису.';
         return;
       }
 
-      // Якщо зараз грає ліс — ставимо його на паузу
       if (isForestPlaying) {
         pauseForestSound();
         userPausedForest = true;
-        instructionText.textContent = '⏸️ Звук лісу на паузі. Торкніться екрана для відновлення.';
-      } 
-      // Якщо ліс на паузі (і зараз НЕ грає опис) — вмикаємо його
-      else if (!isPlayingDescription) {
+        instructionText.textContent = '⏸️ Звук лісу на паузі. Торкніться для відновлення.';
+      } else if (!isPlayingDescription) {
         userPausedForest = false;
         playForestSound();
-        instructionText.textContent = '🌲 Фоновий звук грає. Натисніть "Відтворити" для опису.';
+        instructionText.textContent = '🌲 Фоновий звук грає. Натисніть кнопку для опису.';
       }
-    }
-
-    window.addEventListener('click', handleGlobalTouch);
+    });
 
     playBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       togglePlayback();
     });
 
-    // Завершення аудіо опису
     audio.addEventListener('ended', () => {
       isPlayingDescription = false;
       btnIcon.textContent = '▶️';
@@ -377,9 +409,9 @@
 
       if (!userPausedForest) {
         playForestSoundWithFade();
-        instructionText.textContent = '✅ Відтворення завершено. Звук лісу повернеться через 2 секунди...';
+        instructionText.textContent = '✅ Опис завершено. Звук лісу повернеться через 2 сек...';
       } else {
-        instructionText.textContent = '✅ Відтворення завершено.';
+        instructionText.textContent = '✅ Опис завершено.';
       }
     });
   </script>
