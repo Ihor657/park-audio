@@ -75,44 +75,20 @@
     const forest = document.getElementById('forest');
 
     let isPlaying = false;
-    let forestStarted = false;
 
     forest.volume = 0.35;
 
-    // Функція запуску лісу
-    function startForest() {
-      if (forestStarted) return;
-      forest.play()
-        .then(() => {
-          forestStarted = true;
-          console.log('Ліс грає');
-        })
-        .catch(err => {
-          console.log('Автовідтворення заблоковано:', err);
-        });
-    }
-
-    // Спроба запустити ліс одразу
-    startForest();
-
-    // Якщо браузер заблокував — запускаємо при будь-якій взаємодії
-    document.body.addEventListener('click', () => {
-      if (!forestStarted && !isPlaying) {
-        startForest();
-      }
-    }, { once: true });
-
-    // Також при дотику (для телефонів)
-    document.body.addEventListener('touchstart', () => {
-      if (!forestStarted && !isPlaying) {
-        startForest();
-      }
-    }, { once: true });
+    // Запускаем лес сразу при загрузке страницы
+    window.addEventListener('load', () => {
+      forest.play().catch(err => {
+        console.log('Автовідтворення заблоковано:', err);
+      });
+    });
 
     // Кнопка
     playBtn.addEventListener('click', () => {
       if (!isPlaying) {
-        // Зупиняємо ліс і запускаємо мову
+        // Останавливаем лес и запускаем речь
         forest.pause();
         forest.currentTime = 0;
 
@@ -127,11 +103,13 @@
         isPlaying = true;
 
       } else {
-        // Зупиняємо мову і повертаємо ліс
+        // Останавливаем речь и возвращаем лес
         audio.pause();
         audio.currentTime = 0;
 
-        startForest();
+        forest.play().catch(err => {
+          console.log('Автовідтворення заблоковано:', err);
+        });
 
         playBtn.innerHTML = '▶️ Відтворити';
         playBtn.classList.remove('playing');
@@ -139,12 +117,15 @@
       }
     });
 
-    // Коли мова закінчилася
+    // Когда речь закончилась
     audio.addEventListener('ended', () => {
       playBtn.innerHTML = '▶️ Відтворити';
       playBtn.classList.remove('playing');
       isPlaying = false;
-      startForest();
+
+      forest.play().catch(err => {
+        console.log('Автовідтворення заблоковано:', err);
+      });
     });
   </script>
 
