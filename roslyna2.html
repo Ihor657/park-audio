@@ -97,21 +97,23 @@
       background-color: #c0392b;
     }
 
-    /* Відображення часу */
+    /* ВІДОВБРАЖЕННЯ ЧАСУ - ЯСКРАВИЙ ТА ПОМІТНИЙ */
     .time-display {
-      margin-top: 15px;
-      font-size: 1.1em;
-      font-weight: 600;
-      color: #2e4e2e;
-      background-color: #e0f2e0;
-      padding: 8px 20px;
-      border-radius: 20px;
+      margin-top: 20px;
+      font-size: 1.3em;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      padding: 12px 25px;
+      border-radius: 25px;
       display: inline-block;
-      min-width: 150px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+      min-width: 180px;
     }
 
     .time-display span {
-      color: #4CAF50;
+      color: #ffff99;
+      font-family: 'Courier New', monospace;
     }
 
     .instruction {
@@ -153,10 +155,10 @@
       }
 
       .time-display {
-        font-size: 0.95em;
-        padding: 6px 15px;
-        min-width: 130px;
-        margin-top: 12px;
+        font-size: 1.1em;
+        padding: 10px 20px;
+        min-width: 150px;
+        margin-top: 15px;
       }
 
       .instruction {
@@ -193,10 +195,10 @@
       }
 
       .time-display {
-        font-size: 0.85em;
-        padding: 5px 12px;
-        min-width: 120px;
-        margin-top: 10px;
+        font-size: 1em;
+        padding: 8px 15px;
+        min-width: 140px;
+        margin-top: 12px;
       }
 
       .instruction {
@@ -211,7 +213,7 @@
 
   <button id="hiddenUnlockBtn"></button>
 
-  <h2 class="main-title"> Прослухайте опис рослини</h2>
+  <h2 class="main-title">🌿 Прослухайте опис рослини</h2>
 
   <div class="controls-container">
     <button class="control-btn" id="startBtn" title="Повернутися на початок">⏮️</button>
@@ -221,10 +223,10 @@
       <span id="btnText">Відтворити</span>
     </button>
     
-    <button class="control-btn" id="endBtn" title="Перейти в кінець">️</button>
+    <button class="control-btn" id="endBtn" title="Перейти в кінець">⏭️</button>
   </div>
 
-  <!-- Відображення часу -->
+  <!-- ВІДОВБРАЖЕННЯ ЧАСУ -->
   <div class="time-display" id="timeDisplay">
     <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
   </div>
@@ -265,7 +267,7 @@
 
     // Функція форматування часу (секунди -> ММ:СС)
     function formatTime(seconds) {
-      if (isNaN(seconds)) return "0:00";
+      if (isNaN(seconds) || seconds < 0) return "0:00";
       
       const mins = Math.floor(seconds / 60);
       const secs = Math.floor(seconds % 60);
@@ -281,6 +283,13 @@
     // Отримання загальної тривалості аудіо
     audio.addEventListener('loadedmetadata', () => {
       durationEl.textContent = formatTime(audio.duration);
+    });
+
+    // Якщо метадані ще не завантажені
+    audio.addEventListener('canplay', () => {
+      if (durationEl.textContent === '0:00') {
+        durationEl.textContent = formatTime(audio.duration);
+      }
     });
 
     // Скидання часу коли аудіо закінчується
@@ -325,7 +334,7 @@
         forest.pause();
         audio.play().then(() => {
           isPlaying = true;
-          btnIcon.textContent = '️';
+          btnIcon.textContent = '⏸️';
           btnText.textContent = 'Пауза';
           playBtn.classList.add('playing');
           instructionText.textContent = '🔊 Йде відтворення опису рослини...';
@@ -339,7 +348,7 @@
         btnIcon.textContent = '▶️';
         btnText.textContent = 'Продовжити';
         playBtn.classList.remove('playing');
-        instructionText.textContent = '️ Аудіо на паузі. Грає фоновий звук лісу.';
+        instructionText.textContent = '⏸️ Аудіо на паузі. Грає фоновий звук лісу.';
         forest.play();
       }
     });
