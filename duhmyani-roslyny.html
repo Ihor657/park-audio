@@ -2,10 +2,423 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
-  <title>Духмяні рослини</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Опис рослини</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+      color: #1b4332;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start; /* Піднімає блок уверх */
+      padding: 40px 20px 20px 20px;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Картка-контейнер */
+    .card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 24px;
+      padding: 35px 25px;
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+      box-shadow: 0 15px 35px rgba(27, 67, 50, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      position: relative;
+    }
+
+    /* Індикатор стану фонового звуку */
+    .forest-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(45, 106, 79, 0.1);
+      color: #2d6a4f;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: 600;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+      opacity: 0.5;
+    }
+
+    .forest-badge.active {
+      opacity: 1;
+      background: rgba(45, 106, 79, 0.2);
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+
+    h2.main-title {
+      font-size: 1.6em;
+      margin: 0 0 20px 0;
+      color: #1b4332;
+    }
+
+    .controls-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    /* Світліша зелена кнопка */
+    .play-btn {
+      background-color: #38a169;
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      font-size: 1.2em;
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(56, 161, 105, 0.3);
+      transition: all 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 200px;
+      justify-content: center;
+    }
+
+    .play-btn:hover {
+      background-color: #2f855a;
+      transform: translateY(-2px);
+    }
+
+    .play-btn:active {
+      transform: scale(0.97);
+    }
+
+    .play-btn.playing {
+      background-color: #d97706;
+      box-shadow: 0 6px 16px rgba(217, 119, 6, 0.3);
+    }
+
+    .play-btn.playing:hover {
+      background-color: #b45309;
+    }
+
+    .progress-container {
+      width: 100%;
+      margin: 25px 0 15px 0;
+    }
+
+    .seek-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: #c8e6c9;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .seek-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #38a169;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: transform 0.1s ease;
+    }
+
+    .seek-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .time-display {
+      font-size: 1.1em;
+      font-weight: 700;
+      color: #2f855a;
+      background: rgba(200, 230, 201, 0.4);
+      padding: 8px 20px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+
+    .instruction {
+      margin-top: 20px;
+      font-size: 0.95em;
+      color: #2f855a;
+      min-height: 2.4em;
+      line-height: 1.4;
+    }
+  </style>
 </head>
+
 <body>
-  <h1>Духмяні рослини</h1>
-  <p>Інформація про духмяні рослини парку.</p>
+
+  <div class="card">
+    <div class="forest-badge" id="forestBadge">
+      <span>🌲</span> <span id="forestBadgeText">Фон: вимкнено</span>
+    </div>
+
+    <h2 class="main-title">Прослухайте опис рослини</h2>
+
+    <div class="controls-container">
+      <button class="play-btn" id="playBtn">
+        <span id="btnIcon">▶️</span>
+        <span id="btnText">Відтворити</span>
+      </button>
+    </div>
+
+    <div class="progress-container">
+      <input type="range" id="seekBar" class="seek-slider" value="0" min="0" max="100" step="0.1">
+    </div>
+
+    <div class="time-display" id="timeDisplay">
+      <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+    </div>
+
+    <div class="instruction" id="instructionText">
+      Торкніться екрана в будь-якому місці, щоб увімкнути звук лісу
+    </div>
+  </div>
+
+  <audio id="audio" preload="metadata">
+    <source src="Audio1.mp3" type="audio/mpeg">
+  </audio>
+
+  <audio id="forest" loop preload="metadata">
+    <source src="Trees.aac" type="audio/aac">
+    <source src="Trees.aac" type="audio/mp4">
+  </audio>
+
+  <script>
+    const playBtn = document.getElementById('playBtn');
+    const seekBar = document.getElementById('seekBar');
+    const currentTimeEl = document.getElementById('currentTime');
+    const durationEl = document.getElementById('duration');
+    const btnIcon = document.getElementById('btnIcon');
+    const btnText = document.getElementById('btnText');
+    const instructionText = document.getElementById('instructionText');
+    const forestBadge = document.getElementById('forestBadge');
+    const forestBadgeText = document.getElementById('forestBadgeText');
+
+    const audio = document.getElementById('audio');
+    const forest = document.getElementById('forest');
+
+    let isPlayingDescription = false;
+    let isForestPlaying = false;
+    let audioUnlocked = false;
+    let isSeeking = false;
+    let userPausedForest = false;
+
+    let forestDelayTimeout = null;
+    let forestFadeInterval = null;
+    const TARGET_FOREST_VOLUME = 0.35;
+
+    function formatTime(seconds) {
+      if (isNaN(seconds) || seconds < 0) return "0:00";
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateForestBadge(active) {
+      if (active) {
+        forestBadge.classList.add('active');
+        forestBadgeText.textContent = 'Фон: Ліс грає';
+      } else {
+        forestBadge.classList.remove('active');
+        forestBadgeText.textContent = 'Фон: Пауза';
+      }
+    }
+
+    audio.addEventListener('timeupdate', () => {
+      if (!isSeeking && audio.duration) {
+        currentTimeEl.textContent = formatTime(audio.currentTime);
+        seekBar.value = (audio.currentTime / audio.duration) * 100;
+      }
+    });
+
+    audio.addEventListener('loadedmetadata', () => {
+      durationEl.textContent = formatTime(audio.duration);
+    });
+
+    seekBar.addEventListener('input', (e) => {
+      e.stopPropagation();
+      isSeeking = true;
+      if (audio.duration) {
+        currentTimeEl.textContent = formatTime((seekBar.value / 100) * audio.duration);
+      }
+    });
+
+    seekBar.addEventListener('change', (e) => {
+      e.stopPropagation();
+      if (audio.duration) {
+        audio.currentTime = (seekBar.value / 100) * audio.duration;
+      }
+      isSeeking = false;
+    });
+
+    ['click', 'touchstart'].forEach(evt => {
+      seekBar.addEventListener(evt, e => e.stopPropagation());
+    });
+
+    function clearForestTimers() {
+      if (forestDelayTimeout) clearTimeout(forestDelayTimeout);
+      if (forestFadeInterval) clearInterval(forestFadeInterval);
+      forestDelayTimeout = null;
+      forestFadeInterval = null;
+    }
+
+    function playForestSound() {
+      clearForestTimers();
+      forest.volume = TARGET_FOREST_VOLUME;
+      forest.play().then(() => {
+        isForestPlaying = true;
+        updateForestBadge(true);
+      }).catch(err => console.log('Аудіо заблоковано браузером:', err));
+    }
+
+    function fadeOutForest(callback) {
+      clearForestTimers();
+      if (!isForestPlaying) {
+        if (callback) callback();
+        return;
+      }
+      
+      const step = 0.05;
+      forestFadeInterval = setInterval(() => {
+        if (forest.volume - step > 0) {
+          forest.volume -= step;
+        } else {
+          forest.volume = 0;
+          forest.pause();
+          isForestPlaying = false;
+          updateForestBadge(false);
+          clearInterval(forestFadeInterval);
+          if (callback) callback();
+        }
+      }, 50);
+    }
+
+    function playForestSoundWithFade() {
+      clearForestTimers();
+      forest.volume = 0;
+
+      forestDelayTimeout = setTimeout(() => {
+        forest.play().then(() => {
+          isForestPlaying = true;
+          updateForestBadge(true);
+          
+          // Оновлюємо надпис, як тільки звук лісу пішов
+          if (!isPlayingDescription) {
+            instructionText.textContent = '🌲 Фоновий звук грає. Натисніть кнопку для опису.';
+          }
+
+          const step = 0.02;
+          forestFadeInterval = setInterval(() => {
+            if (forest.volume + step < TARGET_FOREST_VOLUME) {
+              forest.volume += step;
+            } else {
+              forest.volume = TARGET_FOREST_VOLUME;
+              clearInterval(forestFadeInterval);
+            }
+          }, 100);
+        }).catch(err => console.log('Помилка відтворення:', err));
+      }, 2000);
+    }
+
+    function pauseForestSound() {
+      clearForestTimers();
+      forest.pause();
+      isForestPlaying = false;
+      updateForestBadge(false);
+    }
+
+    function togglePlayback() {
+      audioUnlocked = true;
+
+      if (!isPlayingDescription) {
+        fadeOutForest(() => {
+          audio.play().then(() => {
+            isPlayingDescription = true;
+            btnIcon.textContent = '⏸️';
+            btnText.textContent = 'Пауза';
+            playBtn.classList.add('playing');
+            instructionText.textContent = '🔊 Йде відтворення опису...';
+          }).catch(err => console.error(err));
+        });
+      } else {
+        audio.pause();
+        isPlayingDescription = false;
+        btnIcon.textContent = '▶️';
+        btnText.textContent = 'Продовжити';
+        playBtn.classList.remove('playing');
+
+        if (!userPausedForest) {
+          playForestSoundWithFade();
+          instructionText.textContent = '⏸️ Опис на паузі. Звук лісу відновиться через 2 сек...';
+        } else {
+          instructionText.textContent = '⏸️ Опис на паузі.';
+        }
+      }
+    }
+
+    window.addEventListener('click', (e) => {
+      if (e.target.closest('button') || e.target.closest('#seekBar')) return;
+
+      if (!audioUnlocked) {
+        audioUnlocked = true;
+        userPausedForest = false;
+        playForestSound();
+        instructionText.textContent = '🌲 Фоновий звук грає. Натисніть кнопку для опису.';
+        return;
+      }
+
+      if (isForestPlaying) {
+        pauseForestSound();
+        userPausedForest = true;
+        instructionText.textContent = '⏸️ Звук лісу на паузі. Торкніться для відновлення.';
+      } else if (!isPlayingDescription) {
+        userPausedForest = false;
+        playForestSound();
+        instructionText.textContent = '🌲 Фоновий звук грає. Натисніть кнопку для опису.';
+      }
+    });
+
+    playBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePlayback();
+    });
+
+    audio.addEventListener('ended', () => {
+      isPlayingDescription = false;
+      btnIcon.textContent = '▶️';
+      btnText.textContent = 'Відтворити';
+      playBtn.classList.remove('playing');
+
+      if (!userPausedForest) {
+        playForestSoundWithFade();
+        instructionText.textContent = '✅ Опис завершено. Звук лісу повернеться через 2 сек...';
+      } else {
+        instructionText.textContent = '✅ Опис завершено.';
+      }
+    });
+  </script>
+
 </body>
 </html>
